@@ -1278,9 +1278,9 @@ a { color: var(--cyan-300); text-decoration: none; }
     <p class="sub">Configure SAGE</p>
 
     <div class="field"><label for="setName">Your name</label><input id="setName" type="text" placeholder="e.g. Alex" /></div>
-    <div class="field"><label for="setBaseUrl">API base URL</label><input id="setBaseUrl" type="text" placeholder="https://api.openai.com/v1" /><div class="hint">Change only if using a proxy or compatible provider.</div></div>
-    <div class="field"><label for="setModel">Model</label><input id="setModel" type="text" placeholder="gpt-4o-mini" /></div>
-    <div class="field"><label for="setKey">API key</label><input id="setKey" type="password" placeholder="sk-…" autocomplete="off" /><div class="hint">⚠ Stored in this browser's localStorage. Never share this key.</div></div>
+    <div class="field"><label for="setBaseUrl">API base URL</label><input id="setBaseUrl" type="text" placeholder="https://integrate.api.nvidia.com/v1" /><div class="hint">NVIDIA NIM endpoint by default.</div></div>
+    <div class="field"><label for="setModel">Model</label><input id="setModel" type="text" placeholder="nvidia/llama-3.1-nemotron-70b-instruct" /></div>
+    <div class="field"><label for="setKey">NVIDIA API key</label><input id="setKey" type="password" placeholder="nvapi-…" autocomplete="off" /><div class="hint">⚠ Stored in this browser's localStorage. Never share this key.</div></div>
     <div class="row-2">
       <div class="field"><label for="setTemperature">Temperature</label><input id="setTemperature" type="number" min="0" max="2" step="0.1" /></div>
       <div class="field"><label for="setAssetsBase">Assets folder</label><input id="setAssetsBase" type="text" placeholder="./assets/" /></div>
@@ -1341,6 +1341,7 @@ a { color: var(--cyan-300); text-decoration: none; }
 <script>
 /* ============================================================
    SAGE — Character Edition (video-clip character)
+   NVIDIA API integration
    ============================================================ */
 'use strict';
 
@@ -1395,12 +1396,12 @@ const dbDel = (s, id) => tx(s, 'readwrite', (o) => o.delete(id));
 const dbAll = (s) => tx(s, 'readonly', (o) => o.getAll());
 const dbIndex = (s, i, v) => tx(s, 'readonly', (o) => o.index(i).getAll(v));
 
-/* ---------- Settings ---------- */
-const LS_KEY = 'sage.char.settings.v1';
+/* ---------- Settings (NVIDIA defaults) ---------- */
+const LS_KEY = 'sage.char.settings.v2';
 const DEFAULTS = {
   name: '',
-  baseUrl: 'https://api.openai.com/v1',
-  model: 'gpt-4o-mini',
+  baseUrl: 'https://integrate.api.nvidia.com/v1',
+  model: 'nvidia/llama-3.1-nemotron-70b-instruct',
   apiKey: '',
   temperature: 0.7,
   assetsBase: './assets/',
@@ -1874,7 +1875,7 @@ function tryLocalIntent(text) {
   return null;
 }
 
-/* ---------- AI CALL ---------- */
+/* ---------- AI CALL (NVIDIA-compatible) ---------- */
 function systemPrompt() {
   const mem = settings.memoryEnabled && state.memories.length
     ? `\n\nKnown facts and preferences about the user:\n${state.memories.slice(-20).map((m) => `- ${m.content}`).join('\n')}`
@@ -1903,10 +1904,15 @@ async function callAI(userMessage, { onDelta, signal } = {}) {
     temperature: Number(settings.temperature) || 0.7,
     stream: true,
   };
+  // NVIDIA base URL: https://integrate.api.nvidia.com/v1/chat/completions
   const url = settings.baseUrl.replace(/\/$/, '') + '/chat/completions';
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${settings.apiKey}` },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${settings.apiKey}`,
+      'Accept': 'text/event-stream'
+    },
     body: JSON.stringify(body),
     signal,
   });
@@ -2041,10 +2047,11 @@ async function handleUserMessage(raw) {
     }
     setAssistantState('ERROR');
     let msg;
-    if (e.message === 'NO_API_KEY') msg = "I need an API key first. Open **Settings** and paste one — it stays in your browser.";
-    else if (e.message?.startsWith('API_ERROR_401')) msg = "Your API key was rejected. Please check it in Settings.";
-    else if (e.message?.startsWith('API_ERROR_429')) msg = "The AI provider is rate-limiting requests. Try again shortly.";
-    else if (e.message?.startsWith('API_ERROR_')) msg = "The AI provider returned an error. Please try again.";
+    if (e.message === 'NO_API_KEY') msg = "I need an NVIDIA API key first. Open **Settings** and paste one — it stays in your browser.";
+    else if (e.message?.startsWith('API_ERROR_401')) msg = "Your NVIDIA API key was rejected. Please check it in Settings.";
+    else if (e.message?.startsWith('API_ERROR_403')) msg = "Access forbidden. Verify your NVIDIA API key and model permissions.";
+    else if (e.message?.startsWith('API_ERROR_429')) msg = "NVIDIA is rate-limiting requests. Try again shortly.";
+    else if (e.message?.startsWith('API_ERROR_')) msg = "The NVIDIA API returned an error. Please try again.";
     else msg = "I couldn't complete that request. Please check your connection and settings.";
     body.innerHTML = renderMarkdown(msg);
     await persistMessage('assistant', msg);
@@ -2526,7 +2533,7 @@ $('#notifBtn').addEventListener('click', async () => {
 /* ---------- ONBOARDING ---------- */
 async function maybeOnboard() {
   if (settings.onboarded) return;
-  const name = prompt('Welcome to SAGE.\n\nYour personal AI command center.\n\nWhat should I call you?');
+  const name = prompt('Welcome to SAGE.\n\nYour personal AI command center powered by NVIDIA.\n\nWhat should I call you?');
   if (name && name.trim()) settings.name = name.trim();
   settings.onboarded = true;
   saveSettings();
