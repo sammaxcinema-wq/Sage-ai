@@ -1280,7 +1280,23 @@ a { color: var(--cyan-300); text-decoration: none; }
     <div class="field"><label for="setName">Your name</label><input id="setName" type="text" placeholder="e.g. Alex" /></div>
     <div class="field"><label for="setBaseUrl">API base URL</label><input id="setBaseUrl" type="text" placeholder="https://integrate.api.nvidia.com/v1" /><div class="hint">NVIDIA NIM endpoint by default.</div></div>
     <div class="field"><label for="setModel">Model</label><input id="setModel" type="text" placeholder="nvidia/llama-3.1-nemotron-70b-instruct" /></div>
-    <div class="field"><label for="setKey">NVIDIA API key</label><input id="setKey" type="password" placeholder="nvapi-…" autocomplete="off" /><div class="hint">⚠ Stored in this browser's localStorage. Never share this key.</div></div>
+
+    <!-- MULTI-KEY UI -->
+    <div class="field">
+      <label>NVIDIA API keys <span style="color:var(--cyan-300); font-size:10px; letter-spacing:0.1em;">(one per line — all will be used)</span></label>
+      <textarea id="setKeys" rows="5" placeholder="nvapi-key1...&#10;nvapi-key2...&#10;nvapi-key3..." style="font-family:var(--mono); font-size:12px; resize:vertical; min-height:80px;"></textarea>
+      <div class="hint" id="keysSummary">0 keys configured · 0 active · rotation enabled</div>
+    </div>
+    <div class="field">
+      <label for="setKeyStrategy">Key strategy</label>
+      <select id="setKeyStrategy">
+        <option value="round-robin">Round-robin (balanced)</option>
+        <option value="random">Random</option>
+        <option value="least-used">Least used</option>
+        <option value="failover">Failover (primary first)</option>
+      </select>
+    </div>
+
     <div class="row-2">
       <div class="field"><label for="setTemperature">Temperature</label><input id="setTemperature" type="number" min="0" max="2" step="0.1" /></div>
       <div class="field"><label for="setAssetsBase">Assets folder</label><input id="setAssetsBase" type="text" placeholder="./assets/" /></div>
@@ -1307,6 +1323,19 @@ a { color: var(--cyan-300); text-decoration: none; }
       <button class="btn danger" id="wipeBtn">Erase all local data</button>
       <button class="btn primary" id="saveSettings">Done</button>
     </div>
+  </div>
+</div>
+
+<!-- KEY MANAGER -->
+<div class="modal-scrim" id="keysScrim">
+  <div class="modal" style="position:relative; max-width: 560px;" role="dialog" aria-modal="true">
+    <button class="modal-close" id="keysClose" aria-label="Close">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+    <h2>NVIDIA API keys</h2>
+    <p class="sub" id="keysSub">—</p>
+    <div id="keysBody" style="display:flex; flex-direction:column; gap:8px; max-height: 60vh; overflow-y:auto;"></div>
+    <div class="actions"><button class="btn primary" id="keysPrimary">+ Add key</button></div>
   </div>
 </div>
 
@@ -1341,7 +1370,7 @@ a { color: var(--cyan-300); text-decoration: none; }
 <script>
 /* ============================================================
    SAGE — Character Edition (video-clip character)
-   NVIDIA API integration
+   NVIDIA MULTI-KEY integration with rotation + failover
    ============================================================ */
 'use strict';
 
@@ -1352,11 +1381,12 @@ const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(
 const now = () => new Date();
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const maskKey = (k) => k.length <= 10 ? k.slice(0,4) + '…' : k.slice(0,7) + '…' + k.slice(-4);
 
 /* ---------- IndexedDB ---------- */
-const IDB_NAME = 'sage.char.v1';
+const IDB_NAME = 'sage.char.v2';
 const IDB_VERSION = 1;
-const IDB_STORES = ['conversations', 'messages', 'tasks', 'reminders', 'memories', 'files'];
+const IDB_STORES = ['conversations', 'messages', 'tasks', 'reminders', 'memories', 'files', 'keys'];
 let idb = null;
 
 function openIDB() {
@@ -1373,7 +1403,7 @@ function openIDB() {
         s.createIndex('conversationId', 'conversationId');
         s.createIndex('createdAt', 'createdAt');
       }
-      ['tasks', 'reminders', 'memories', 'files'].forEach((n) => {
+      ['tasks', 'reminders', 'memories', 'files', 'keys'].forEach((n) => {
         if (!db.objectStoreNames.contains(n)) db.createObjectStore(n, { keyPath: 'id' });
       });
     };
@@ -1396,13 +1426,14 @@ const dbDel = (s, id) => tx(s, 'readwrite', (o) => o.delete(id));
 const dbAll = (s) => tx(s, 'readonly', (o) => o.getAll());
 const dbIndex = (s, i, v) => tx(s, 'readonly', (o) => o.index(i).getAll(v));
 
-/* ---------- Settings (NVIDIA defaults) ---------- */
-const LS_KEY = 'sage.char.settings.v2';
+/* ---------- Settings (NVIDIA multi-key defaults) ---------- */
+const LS_KEY = 'sage.char.settings.v3';
 const DEFAULTS = {
   name: '',
   baseUrl: 'https://integrate.api.nvidia.com/v1',
   model: 'nvidia/llama-3.1-nemotron-70b-instruct',
-  apiKey: '',
+  apiKeys: [],           // array of { id, key, label, addedAt, useCount, lastUsed, status, errorCount }
+  keyStrategy: 'round-robin',
   temperature: 0.7,
   assetsBase: './assets/',
   autoSpeak: false,
@@ -1412,11 +1443,133 @@ const DEFAULTS = {
   onboarded: false,
 };
 const loadSettings = () => {
-  try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(LS_KEY) || '{}') }; }
-  catch { return { ...DEFAULTS }; }
+  try {
+    const raw = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+    const merged = { ...DEFAULTS, ...raw };
+    // Migrate old single-key format
+    if (raw.apiKey && (!merged.apiKeys || !merged.apiKeys.length)) {
+      merged.apiKeys = [{ id: uid(), key: raw.apiKey, label: 'Primary', addedAt: now().toISOString(), useCount: 0, lastUsed: null, status: 'active', errorCount: 0 }];
+    }
+    delete merged.apiKey;
+    return merged;
+  } catch { return { ...DEFAULTS }; }
 };
 const saveSettings = () => localStorage.setItem(LS_KEY, JSON.stringify(settings));
 let settings = loadSettings();
+
+/* ---------- KEY MANAGER ---------- */
+const KeyManager = {
+  _cursor: 0,
+
+  all() { return settings.apiKeys || []; },
+  active() { return this.all().filter(k => k.status === 'active' && k.key); },
+  hasKeys() { return this.active().length > 0; },
+
+  add(key, label = '') {
+    key = String(key).trim();
+    if (!key) return null;
+    const entry = {
+      id: uid(),
+      key,
+      label: label || `Key ${this.all().length + 1}`,
+      addedAt: now().toISOString(),
+      useCount: 0,
+      lastUsed: null,
+      status: 'active',
+      errorCount: 0,
+    };
+    settings.apiKeys.push(entry);
+    saveSettings();
+    return entry;
+  },
+
+  remove(id) {
+    settings.apiKeys = this.all().filter(k => k.id !== id);
+    saveSettings();
+  },
+
+  toggle(id) {
+    const k = this.all().find(x => x.id === id);
+    if (!k) return;
+    k.status = k.status === 'active' ? 'disabled' : 'active';
+    k.errorCount = 0;
+    saveSettings();
+  },
+
+  update(id, patch) {
+    const k = this.all().find(x => x.id === id);
+    if (!k) return;
+    Object.assign(k, patch);
+    saveSettings();
+  },
+
+  markSuccess(id) {
+    const k = this.all().find(x => x.id === id);
+    if (!k) return;
+    k.useCount = (k.useCount || 0) + 1;
+    k.lastUsed = now().toISOString();
+    k.errorCount = 0;
+    if (k.status === 'error') k.status = 'active';
+    saveSettings();
+  },
+
+  markFailure(id, permanent = false) {
+    const k = this.all().find(x => x.id === id);
+    if (!k) return;
+    k.errorCount = (k.errorCount || 0) + 1;
+    k.lastUsed = now().toISOString();
+    if (permanent || k.errorCount >= 3) k.status = 'error';
+    saveSettings();
+  },
+
+  /** Pick the next key based on strategy. */
+  next() {
+    const list = this.active();
+    if (!list.length) return null;
+    const strategy = settings.keyStrategy || 'round-robin';
+
+    if (strategy === 'random') {
+      return list[Math.floor(Math.random() * list.length)];
+    }
+    if (strategy === 'least-used') {
+      return list.slice().sort((a, b) => (a.useCount || 0) - (b.useCount || 0))[0];
+    }
+    if (strategy === 'failover') {
+      // First key is primary; only move on if it errors
+      const primary = list[0];
+      return primary;
+    }
+    // round-robin (default)
+    const sorted = list.slice().sort((a, b) => {
+      const at = a.lastUsed ? new Date(a.lastUsed).getTime() : 0;
+      const bt = b.lastUsed ? new Date(b.lastUsed).getTime() : 0;
+      return at - bt;
+    });
+    return sorted[0];
+  },
+
+  /** Get all keys ordered by failover preference for a retry chain. */
+  chain() {
+    const list = this.active();
+    if (!list.length) return [];
+    const strategy = settings.keyStrategy || 'round-robin';
+    if (strategy === 'failover') return list.slice();
+    if (strategy === 'least-used') return list.slice().sort((a, b) => (a.useCount || 0) - (b.useCount || 0));
+    if (strategy === 'random') return list.slice().sort(() => Math.random() - 0.5);
+    // round-robin: order so least-recently-used comes first
+    return list.slice().sort((a, b) => {
+      const at = a.lastUsed ? new Date(a.lastUsed).getTime() : 0;
+      const bt = b.lastUsed ? new Date(b.lastUsed).getTime() : 0;
+      return at - bt;
+    });
+  },
+
+  summary() {
+    const all = this.all();
+    const active = this.active();
+    return `${all.length} key${all.length === 1 ? '' : 's'} configured · ${active.length} active · ${settings.keyStrategy} strategy`;
+  }
+};
 
 /* ---------- State ---------- */
 const state = {
@@ -1431,6 +1584,7 @@ const state = {
   listening: false,
   recognition: null,
   controller: null,
+  lastKeyId: null,
 };
 
 /* ---------- DOM ---------- */
@@ -1464,13 +1618,15 @@ function applySettings() {
   $('#setName').value = settings.name || '';
   $('#setBaseUrl').value = settings.baseUrl;
   $('#setModel').value = settings.model;
-  $('#setKey').value = settings.apiKey || '';
+  $('#setKeys').value = (settings.apiKeys || []).map(k => k.key).join('\n');
+  $('#setKeyStrategy').value = settings.keyStrategy || 'round-robin';
   $('#setTemperature').value = settings.temperature;
   $('#setAssetsBase').value = settings.assetsBase;
   $('#tglAutoSpeak').setAttribute('aria-checked', String(settings.autoSpeak));
   $('#tglMemory').setAttribute('aria-checked', String(settings.memoryEnabled));
   $('#tglMotion').setAttribute('aria-checked', String(settings.reduceMotion));
   $('#tglFollow').setAttribute('aria-checked', String(settings.headFollow));
+  updateKeysSummary();
 
   // Swap video sources if assets base changed
   const base = settings.assetsBase.endsWith('/') ? settings.assetsBase : settings.assetsBase + '/';
@@ -1482,6 +1638,18 @@ function applySettings() {
     const want = base + v + '.webm';
     if (el.src !== want && !el.src.endsWith(want)) el.src = want;
   }
+}
+function updateKeysSummary() {
+  const el = $('#keysSummary');
+  if (!el) return;
+  const all = KeyManager.all();
+  const active = KeyManager.active();
+  const errored = all.filter(k => k.status === 'error').length;
+  const disabled = all.filter(k => k.status === 'disabled').length;
+  el.textContent = `${all.length} key${all.length === 1 ? '' : 's'} · ${active.length} active` +
+    (errored ? ` · ${errored} errored` : '') +
+    (disabled ? ` · ${disabled} disabled` : '') +
+    ` · ${settings.keyStrategy}`;
 }
 
 /* ---------- Assistant state + video switching ---------- */
@@ -1495,7 +1663,6 @@ function setAssistantState(s) {
   statusPill.textContent = ({ IDLE:'Idle', LISTENING:'Listening', THINKING:'Thinking',
     RESPONDING:'Speaking', PROCESSING:'Working', ERROR:'Error', OFFLINE:'Offline' })[s] || s;
 
-  // Swap active video
   const target = videos[s] || videos.IDLE;
   for (const v of Object.values(videos)) {
     if (!v) continue;
@@ -1875,7 +2042,7 @@ function tryLocalIntent(text) {
   return null;
 }
 
-/* ---------- AI CALL (NVIDIA-compatible) ---------- */
+/* ---------- AI CALL (NVIDIA MULTI-KEY) ---------- */
 function systemPrompt() {
   const mem = settings.memoryEnabled && state.memories.length
     ? `\n\nKnown facts and preferences about the user:\n${state.memories.slice(-20).map((m) => `- ${m.content}`).join('\n')}`
@@ -1888,8 +2055,10 @@ You cannot browse the web from this application; if asked to search, explain tha
 Current date/time: ${new Date().toLocaleString()}.${mem}`;
 }
 
-async function callAI(userMessage, { onDelta, signal } = {}) {
-  if (!settings.apiKey) throw new Error('NO_API_KEY');
+/**
+ * Single attempt against one key. Throws on failure.
+ */
+async function callAIOnce(userMessage, keyEntry, { onDelta, signal } = {}) {
   const history = state.messages
     .filter((m) => m.role === 'user' || m.role === 'assistant')
     .slice(-20)
@@ -1904,13 +2073,12 @@ async function callAI(userMessage, { onDelta, signal } = {}) {
     temperature: Number(settings.temperature) || 0.7,
     stream: true,
   };
-  // NVIDIA base URL: https://integrate.api.nvidia.com/v1/chat/completions
   const url = settings.baseUrl.replace(/\/$/, '') + '/chat/completions';
   const res = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${settings.apiKey}`,
+      'Authorization': `Bearer ${keyEntry.key}`,
       'Accept': 'text/event-stream'
     },
     body: JSON.stringify(body),
@@ -1918,7 +2086,9 @@ async function callAI(userMessage, { onDelta, signal } = {}) {
   });
   if (!res.ok) {
     const e = await res.text().catch(() => '');
-    throw new Error(`API_ERROR_${res.status}:${e.slice(0, 200)}`);
+    const err = new Error(`API_ERROR_${res.status}:${e.slice(0, 200)}`);
+    err.status = res.status;
+    throw err;
   }
   if (!res.body) throw new Error('NO_STREAM');
   const reader = res.body.getReader();
@@ -1943,6 +2113,48 @@ async function callAI(userMessage, { onDelta, signal } = {}) {
     }
   }
   return full;
+}
+
+/**
+ * Try multiple keys in sequence (failover) with the user's chosen strategy.
+ * Emits an `onKeySwitch` callback whenever it moves to a new key.
+ */
+async function callAI(userMessage, { onDelta, signal, onKeySwitch } = {}) {
+  const chain = KeyManager.chain();
+  if (!chain.length) throw new Error('NO_API_KEY');
+
+  let lastErr = null;
+  for (let i = 0; i < chain.length; i++) {
+    const keyEntry = chain[i];
+    if (onKeySwitch) onKeySwitch(keyEntry, i, chain.length);
+    try {
+      const result = await callAIOnce(userMessage, keyEntry, { onDelta, signal });
+      KeyManager.markSuccess(keyEntry.id);
+      state.lastKeyId = keyEntry.id;
+      updateKeysSummary();
+      return result;
+    } catch (e) {
+      lastErr = e;
+      if (e.name === 'AbortError') throw e; // don't fail over on user cancel
+      const status = e.status || 0;
+      const isAuthError = status === 401 || status === 403;
+      const isRateLimit = status === 429;
+      const isServerError = status >= 500;
+      const isNetwork = !status;
+      // Mark permanently for auth failures; temporary for the rest
+      KeyManager.markFailure(keyEntry.id, isAuthError);
+      updateKeysSummary();
+      // If signal aborted between attempts, stop
+      if (signal && signal.aborted) throw e;
+      // Continue to next key for auth / rate / server / network errors
+      if (isAuthError || isRateLimit || isServerError || isNetwork) {
+        continue;
+      }
+      // Other 4xx are likely our fault — don't burn all keys on them
+      throw e;
+    }
+  }
+  throw lastErr || new Error('ALL_KEYS_FAILED');
 }
 
 /* ---------- THREAD / CARDS ---------- */
@@ -2015,16 +2227,29 @@ async function handleUserMessage(raw) {
   }
 
   setAssistantState('THINKING');
-  const { body } = appendCard('assistant', '');
+  const { card, body } = appendCard('assistant', '');
   body.classList.add('stream-caret');
   let buffer = '';
   state.controller = new AbortController();
 
+  // Show a tool-line indicating which key is in use
+  const keyLine = document.createElement('div');
+  keyLine.className = 'tool-line';
+  keyLine.innerHTML = `<span class="spin"></span>Selecting API key…`;
+  card.insertBefore(keyLine, body);
+
   try {
     await callAI(text, {
       signal: state.controller.signal,
+      onKeySwitch: (k, idx, total) => {
+        keyLine.innerHTML = `<span class="spin"></span>Using ${esc(k.label || 'key')} (${idx + 1}/${total}) · ${maskKey(k.key)}`;
+      },
       onDelta: (_d, full) => {
         if (state.assistant !== 'RESPONDING') { setAssistantState('RESPONDING'); startWave(); }
+        if (keyLine.parentNode) {
+          keyLine.classList.add('done');
+          keyLine.innerHTML = `<span class="spin"></span>Streaming via ${esc((KeyManager.all().find(k => k.id === state.lastKeyId)?.label) || 'NVIDIA')}`;
+        }
         buffer = full;
         body.innerHTML = renderMarkdown(buffer);
         threadEl.scrollTop = threadEl.scrollHeight;
@@ -2047,12 +2272,20 @@ async function handleUserMessage(raw) {
     }
     setAssistantState('ERROR');
     let msg;
-    if (e.message === 'NO_API_KEY') msg = "I need an NVIDIA API key first. Open **Settings** and paste one — it stays in your browser.";
-    else if (e.message?.startsWith('API_ERROR_401')) msg = "Your NVIDIA API key was rejected. Please check it in Settings.";
-    else if (e.message?.startsWith('API_ERROR_403')) msg = "Access forbidden. Verify your NVIDIA API key and model permissions.";
-    else if (e.message?.startsWith('API_ERROR_429')) msg = "NVIDIA is rate-limiting requests. Try again shortly.";
-    else if (e.message?.startsWith('API_ERROR_')) msg = "The NVIDIA API returned an error. Please try again.";
-    else msg = "I couldn't complete that request. Please check your connection and settings.";
+    if (e.message === 'NO_API_KEY' || e.message === 'ALL_KEYS_FAILED') {
+      if (!KeyManager.all().length) {
+        msg = "I need at least one NVIDIA API key. Open **Settings** and paste one or more keys (one per line).";
+      } else if (!KeyManager.active().length) {
+        msg = "All API keys are currently marked as errored or disabled. Open **Settings** to review and re-enable them.";
+      } else {
+        msg = "All API keys failed. Check your keys in **Settings** or try again shortly.";
+      }
+    }
+    else if (e.message?.startsWith('API_ERROR_401')) msg = "All keys were rejected by NVIDIA (401). Please verify your API keys in Settings.";
+    else if (e.message?.startsWith('API_ERROR_403')) msg = "Access forbidden (403). Verify your NVIDIA API key permissions and model access.";
+    else if (e.message?.startsWith('API_ERROR_429')) msg = "All keys hit NVIDIA rate limits (429). Try again shortly or add more keys.";
+    else if (e.message?.startsWith('API_ERROR_')) msg = "The NVIDIA API returned an error across all keys. Please try again.";
+    else msg = "I couldn't complete that request. Please check your connection and keys in Settings.";
     body.innerHTML = renderMarkdown(msg);
     await persistMessage('assistant', msg);
     setTimeout(() => setAssistantState('IDLE'), 2400);
@@ -2186,6 +2419,7 @@ $$('.panel-btn[data-view]').forEach((btn) => {
     $$('.panel-btn[data-view]').forEach((b) => b.classList.toggle('active', b === btn));
     const v = btn.dataset.view;
     if (v === 'assistant') { closePanel(); return; }
+    if (v === 'keys') { openKeysModal(); closePanel(); return; }
     openListModal(v);
     closePanel();
   });
@@ -2362,6 +2596,63 @@ listPrimary.addEventListener('click', async () => {
   }
 });
 
+/* ---------- KEYS MODAL ---------- */
+const keysScrim = $('#keysScrim');
+const keysSub = $('#keysSub');
+const keysBody = $('#keysBody');
+function openKeysModal() {
+  keysScrim.classList.add('show');
+  renderKeys();
+}
+function closeKeysModal() { keysScrim.classList.remove('show'); }
+$('#keysClose').addEventListener('click', closeKeysModal);
+keysScrim.addEventListener('click', (e) => { if (e.target === keysScrim) closeKeysModal(); });
+function renderKeys() {
+  const list = KeyManager.all();
+  keysSub.textContent = list.length
+    ? `${list.length} key${list.length === 1 ? '' : 's'} · strategy: ${settings.keyStrategy}`
+    : 'No keys configured';
+  keysBody.innerHTML = '';
+  if (!list.length) {
+    keysBody.innerHTML = `<div style="text-align:center; padding:40px 20px; color:var(--text-faint);">Paste one or more NVIDIA API keys in Settings, one per line.</div>`;
+    return;
+  }
+  for (const k of list) {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex; gap:10px; align-items:center; padding:12px 14px; border:1px solid var(--glass-border); border-radius:12px; background: rgba(34,211,238,0.03);';
+    const statusColor = k.status === 'active' ? 'var(--cyan-300)' : k.status === 'error' ? 'var(--danger)' : 'var(--text-faint)';
+    const last = k.lastUsed ? new Date(k.lastUsed).toLocaleString() : 'never';
+    row.innerHTML = `
+      <div style="flex:1; min-width:0;">
+        <div style="font-size:14px; color: var(--text); display:flex; align-items:center; gap:8px;">
+          <span style="width:7px; height:7px; border-radius:50%; background:${statusColor}; box-shadow:0 0 6px ${statusColor};"></span>
+          <span>${esc(k.label || 'Key')}</span>
+          <span style="font-family:var(--mono); font-size:11px; color:var(--text-faint);">${esc(maskKey(k.key))}</span>
+        </div>
+        <div style="font-size:11.5px; color: var(--text-faint); margin-top:4px;">
+          ${k.status} · used ${k.useCount || 0}× · errors ${k.errorCount || 0} · last: ${esc(last)}
+        </div>
+      </div>
+      <button class="btn" data-toggle>${k.status === 'active' ? 'Disable' : 'Enable'}</button>
+      <button class="btn danger" data-del>Delete</button>`;
+    row.querySelector('[data-toggle]').addEventListener('click', () => { KeyManager.toggle(k.id); renderKeys(); updateKeysSummary(); });
+    row.querySelector('[data-del]').addEventListener('click', async () => {
+      const ok = await confirmAction({ title: 'Delete this key?', body: k.label || maskKey(k.key), risk: 'High risk · Destructive' });
+      if (!ok) return;
+      KeyManager.remove(k.id);
+      renderKeys(); updateKeysSummary();
+    });
+    keysBody.appendChild(row);
+  }
+}
+$('#keysPrimary').addEventListener('click', () => {
+  const input = prompt('Paste the NVIDIA API key (nvapi-...):');
+  if (!input || !input.trim()) return;
+  const label = prompt('Label for this key (optional):') || '';
+  KeyManager.add(input.trim(), label.trim());
+  renderKeys(); updateKeysSummary();
+});
+
 /* ---------- FILES ---------- */
 function pickFile() {
   const input = document.createElement('input');
@@ -2459,7 +2750,30 @@ settingsScrim.addEventListener('click', (e) => { if (e.target === settingsScrim)
 $('#setName').addEventListener('input', (e) => { settings.name = e.target.value; saveSettings(); });
 $('#setBaseUrl').addEventListener('input', (e) => { settings.baseUrl = e.target.value; saveSettings(); });
 $('#setModel').addEventListener('input', (e) => { settings.model = e.target.value; saveSettings(); });
-$('#setKey').addEventListener('input', (e) => { settings.apiKey = e.target.value.trim(); saveSettings(); });
+
+// Keys textarea → parse lines into key entries, preserving existing metadata where possible
+$('#setKeys').addEventListener('input', (e) => {
+  const lines = e.target.value.split('\n').map(l => l.trim()).filter(Boolean);
+  const existingByKey = new Map(KeyManager.all().map(k => [k.key, k]));
+  const next = lines.map((key, idx) => {
+    const existing = existingByKey.get(key);
+    if (existing) return existing;
+    return {
+      id: uid(),
+      key,
+      label: `Key ${idx + 1}`,
+      addedAt: now().toISOString(),
+      useCount: 0,
+      lastUsed: null,
+      status: 'active',
+      errorCount: 0,
+    };
+  });
+  settings.apiKeys = next;
+  saveSettings();
+  updateKeysSummary();
+});
+$('#setKeyStrategy').addEventListener('change', (e) => { settings.keyStrategy = e.target.value; saveSettings(); updateKeysSummary(); });
 $('#setTemperature').addEventListener('input', (e) => { settings.temperature = parseFloat(e.target.value) || 0.7; saveSettings(); });
 $('#setAssetsBase').addEventListener('input', (e) => {
   settings.assetsBase = e.target.value.trim();
@@ -2488,7 +2802,7 @@ bindToggle('#tglFollow', 'headFollow');
 $('#wipeBtn').addEventListener('click', async () => {
   const ok = await confirmAction({
     title: 'Erase all local SAGE data?',
-    body: 'Conversations, tasks, reminders, memories, and files will be permanently removed from this browser.',
+    body: 'Conversations, tasks, reminders, memories, files, and API keys will be permanently removed from this browser.',
     risk: 'High risk · Destructive · Cannot be undone',
   });
   if (!ok) return;
@@ -2512,6 +2826,7 @@ document.addEventListener('keydown', (e) => {
     if (state.controller) { state.controller.abort(); toast('Stopped.'); return; }
     if (state.listening) { stopListening(); return; }
     if (settingsScrim.classList.contains('show')) { closeSettings(); return; }
+    if (keysScrim.classList.contains('show')) { closeKeysModal(); return; }
     if (listScrim.classList.contains('show')) { closeList(); return; }
     if (panel.classList.contains('open')) { closePanel(); return; }
   }
@@ -2524,7 +2839,8 @@ document.addEventListener('keydown', (e) => {
 $('#notifBtn').addEventListener('click', async () => {
   const pending = state.reminders.filter(r => r.status === 'pending').length;
   const openTasks = state.tasks.filter(t => t.status !== 'COMPLETED').length;
-  toast(`${pending} pending reminder${pending === 1 ? '' : 's'} · ${openTasks} open task${openTasks === 1 ? '' : 's'}`);
+  const keyInfo = KeyManager.summary();
+  toast(`${pending} pending reminder${pending === 1 ? '' : 's'} · ${openTasks} open task${openTasks === 1 ? '' : 's'} · ${keyInfo}`, 5000);
   if ('Notification' in window && Notification.permission === 'default') {
     try { await Notification.requestPermission(); } catch {}
   }
@@ -2533,7 +2849,7 @@ $('#notifBtn').addEventListener('click', async () => {
 /* ---------- ONBOARDING ---------- */
 async function maybeOnboard() {
   if (settings.onboarded) return;
-  const name = prompt('Welcome to SAGE.\n\nYour personal AI command center powered by NVIDIA.\n\nWhat should I call you?');
+  const name = prompt('Welcome to SAGE.\n\nYour personal AI command center powered by NVIDIA multi-key rotation.\n\nWhat should I call you?');
   if (name && name.trim()) settings.name = name.trim();
   settings.onboarded = true;
   saveSettings();
