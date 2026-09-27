@@ -243,7 +243,6 @@ a { color: var(--cyan-300); text-decoration: none; }
   margin: 0;
 }
 
-/* Hex ring frames */
 .char-ring {
   position: absolute;
   inset: -6%;
@@ -258,7 +257,6 @@ a { color: var(--cyan-300); text-decoration: none; }
 .char-ring.r2 { inset: -14%; opacity: 0.55; border-style: dashed; }
 .char-ring.r3 { inset: -22%; opacity: 0.28; }
 
-/* Pulse rings */
 .char-pulse {
   position: absolute;
   inset: -6%;
@@ -268,7 +266,6 @@ a { color: var(--cyan-300); text-decoration: none; }
   pointer-events: none;
 }
 
-/* Ambient glow */
 .char-halo {
   position: absolute;
   inset: -20%;
@@ -283,7 +280,6 @@ a { color: var(--cyan-300); text-decoration: none; }
   transition: background var(--t-slow), opacity var(--t-slow);
 }
 
-/* Character video */
 .char-frame {
   position: relative;
   width: 100%;
@@ -310,11 +306,8 @@ a { color: var(--cyan-300); text-decoration: none; }
   transition: opacity 220ms ease, filter var(--t-slow);
   filter: saturate(1.05) contrast(1.05) brightness(0.98);
 }
-.char-video.active {
-  opacity: 1;
-}
+.char-video.active { opacity: 1; }
 
-/* Extra cyan glow layer over the video, reacts to state */
 .char-glow {
   position: absolute;
   inset: 0;
@@ -325,7 +318,6 @@ a { color: var(--cyan-300); text-decoration: none; }
   z-index: 3;
 }
 
-/* Waveform halo (RESPONDING) */
 .char-wave {
   position: absolute;
   inset: -6%;
@@ -342,7 +334,6 @@ a { color: var(--cyan-300); text-decoration: none; }
   filter: drop-shadow(0 0 8px rgba(255, 179, 71, 0.9));
 }
 
-/* Flow particles (THINKING) */
 .char-flow {
   position: absolute;
   inset: -20%;
@@ -352,7 +343,6 @@ a { color: var(--cyan-300); text-decoration: none; }
   transition: opacity var(--t-med);
 }
 
-/* Label */
 .char-label {
   position: absolute;
   bottom: -8px;
@@ -388,7 +378,6 @@ a { color: var(--cyan-300); text-decoration: none; }
 .character-stage.has-thread .char-ring.r2,
 .character-stage.has-thread .char-ring.r3 { display: none; }
 
-/* Title */
 .char-title {
   position: absolute;
   top: 8px;
@@ -419,7 +408,7 @@ a { color: var(--cyan-300); text-decoration: none; }
 .character-stage.has-thread .char-title { opacity: 0; }
 
 /* ============================================================
-   STATE ANIMATIONS (state-driven, layered on top of video)
+   STATE ANIMATIONS
    ============================================================ */
 .char-wrap[data-state="IDLE"] .char-halo {
   animation: halo-breathe 6s ease-in-out infinite;
@@ -629,24 +618,6 @@ a { color: var(--cyan-300); text-decoration: none; }
 .card-body li { margin-bottom: 4px; }
 .card-body a { border-bottom: 1px solid rgba(34, 211, 238, 0.4); }
 
-/* Image thumbnails inside cards */
-.card-images {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-.card-images img {
-  max-width: 180px;
-  max-height: 140px;
-  border-radius: 10px;
-  border: 1px solid var(--glass-border);
-  object-fit: cover;
-  cursor: zoom-in;
-  transition: transform var(--t-fast), border-color var(--t-fast);
-}
-.card-images img:hover { transform: scale(1.02); border-color: var(--glass-border-strong); }
-
 .tool-line {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 5px 12px;
@@ -674,27 +645,6 @@ a { color: var(--cyan-300); text-decoration: none; }
   border-radius: 50%;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-
-/* Reasoning trace */
-.reasoning {
-  margin: 6px 0 10px;
-  border-left: 2px solid rgba(255, 179, 71, 0.5);
-  padding: 6px 12px;
-  background: rgba(255, 179, 71, 0.04);
-  border-radius: 6px;
-  font-size: 12.5px;
-  color: var(--text-dim);
-  white-space: pre-wrap;
-  max-height: 260px;
-  overflow-y: auto;
-}
-.reasoning-label {
-  font-size: 10px;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: var(--amber-400);
-  margin-bottom: 4px;
-}
 
 .stream-caret::after {
   content: '▍';
@@ -809,10 +759,6 @@ a { color: var(--cyan-300); text-decoration: none; }
   0%   { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.7); }
   100% { box-shadow: 0 0 0 16px rgba(0, 212, 255, 0); }
 }
-.composer-btn.attach {
-  color: var(--text-dim);
-}
-.composer-btn.attach:hover { color: var(--cyan-300); background: rgba(34, 211, 238, 0.08); }
 .composer-btn.send {
   background: linear-gradient(135deg, var(--cyan-300), var(--cyan-500));
   color: #001b22;
@@ -824,45 +770,6 @@ a { color: var(--cyan-300); text-decoration: none; }
   box-shadow: 0 4px 24px rgba(0, 212, 255, 0.45);
 }
 .composer-btn.send:disabled { opacity: 0.3; cursor: not-allowed; }
-
-/* Attachment tray */
-.attach-tray {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding: 8px 14px 0;
-  max-width: 100%;
-}
-.attach-tray:empty { display: none; }
-.attach-thumb {
-  position: relative;
-  width: 56px;
-  height: 56px;
-  border-radius: 10px;
-  overflow: hidden;
-  border: 1px solid var(--glass-border-strong);
-  background: rgba(0,0,0,0.4);
-}
-.attach-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.attach-thumb .remove {
-  position: absolute;
-  top: 2px; right: 2px;
-  width: 18px; height: 18px;
-  border-radius: 50%;
-  background: rgba(255, 90, 60, 0.85);
-  color: #fff;
-  display: grid;
-  place-items: center;
-  font-size: 12px;
-  line-height: 1;
-  cursor: pointer;
-  border: none;
-}
-
 .privacy-note {
   text-align: center;
   font-size: 10.5px;
@@ -1059,6 +966,7 @@ a { color: var(--cyan-300); text-decoration: none; }
   border-color: var(--glass-border-strong);
   box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.12);
 }
+.modal input[readonly] { opacity: 0.7; cursor: default; }
 .modal .hint { font-size: 11px; color: var(--text-faint); }
 .modal .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .modal .actions {
@@ -1163,27 +1071,6 @@ a { color: var(--cyan-300); text-decoration: none; }
 .toast.show { transform: translateX(0); }
 
 /* ============================================================
-   LIGHTBOX
-   ============================================================ */
-.lightbox {
-  position: fixed;
-  inset: 0;
-  z-index: 300;
-  background: rgba(0,0,0,0.92);
-  display: none;
-  place-items: center;
-  padding: 30px;
-  cursor: zoom-out;
-}
-.lightbox.show { display: grid; }
-.lightbox img {
-  max-width: 92vw;
-  max-height: 92vh;
-  border-radius: 12px;
-  box-shadow: 0 30px 80px rgba(0,0,0,0.8);
-}
-
-/* ============================================================
    RESPONSIVE
    ============================================================ */
 @media (max-width: 900px) {
@@ -1215,7 +1102,6 @@ a { color: var(--cyan-300); text-decoration: none; }
 </head>
 <body>
 
-<!-- ENVIRONMENT -->
 <div class="env" aria-hidden="true">
   <div class="env-tunnel"></div>
   <canvas class="env-canvas" id="envCanvas"></canvas>
@@ -1223,7 +1109,6 @@ a { color: var(--cyan-300); text-decoration: none; }
   <div class="env-grain"></div>
 </div>
 
-<!-- APP -->
 <div class="app" id="app">
 
   <header class="topbar">
@@ -1280,11 +1165,6 @@ a { color: var(--cyan-300); text-decoration: none; }
     </button>
 
     <div class="panel-title">Tools</div>
-    <button class="panel-btn" data-view="keys">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
-      API keys
-      <span class="count" id="keysCount">0</span>
-    </button>
     <button class="panel-btn" data-view="files">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
       Files
@@ -1298,7 +1178,7 @@ a { color: var(--cyan-300); text-decoration: none; }
 
     <div class="panel-footer">
       <div>SAGE · v1.0</div>
-      <div style="margin-top:4px; opacity: 0.7;">Local-first · Your data stays here</div>
+      <div style="margin-top:4px; opacity: 0.7;">Local-first · Key hidden on server</div>
     </div>
   </aside>
   <div class="panel-scrim" id="panelScrim"></div>
@@ -1356,14 +1236,8 @@ a { color: var(--cyan-300); text-decoration: none; }
       </div>
 
       <div class="composer-wrap">
-        <div class="attach-tray" id="attachTray"></div>
         <form class="composer" id="composer" autocomplete="off">
-          <textarea id="input" rows="1" placeholder="Type a message… (attach images with the + button)" aria-label="Message SAGE"></textarea>
-          <button type="button" class="composer-btn attach" id="attachBtn" aria-label="Attach image" title="Attach image">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 5v14M5 12h14"/>
-            </svg>
-          </button>
+          <textarea id="input" rows="1" placeholder="Type a message…" aria-label="Message SAGE"></textarea>
           <button type="button" class="composer-btn mic" id="micBtn" aria-label="Voice input" title="Voice input">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <rect x="9" y="2" width="6" height="12" rx="3"/>
@@ -1382,7 +1256,6 @@ a { color: var(--cyan-300); text-decoration: none; }
   </main>
 </div>
 
-<!-- SETTINGS -->
 <div class="modal-scrim" id="settingsScrim">
   <div class="modal" style="position:relative;" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
     <button class="modal-close" id="settingsClose" aria-label="Close settings">
@@ -1392,44 +1265,25 @@ a { color: var(--cyan-300); text-decoration: none; }
     <p class="sub">Configure SAGE</p>
 
     <div class="field"><label for="setName">Your name</label><input id="setName" type="text" placeholder="e.g. Alex" /></div>
-    <div class="field"><label for="setBaseUrl">API base URL</label><input id="setBaseUrl" type="text" placeholder="https://integrate.api.nvidia.com/v1" /><div class="hint">NVIDIA NIM endpoint by default.</div></div>
-    <div class="field"><label for="setModel">Model</label><input id="setModel" type="text" placeholder="moonshotai/kimi-k3" /><div class="hint">e.g. moonshotai/kimi-k3, nvidia/llama-3.1-nemotron-70b-instruct, microsoft/phi-3.5-vision-instruct</div></div>
 
-    <!-- MULTI-KEY UI -->
     <div class="field">
-      <label>NVIDIA API keys <span style="color:var(--cyan-300); font-size:10px; letter-spacing:0.1em;">(one per line — all will be used)</span></label>
-      <textarea id="setKeys" rows="5" placeholder="nvapi-key1...&#10;nvapi-key2...&#10;nvapi-key3..." style="font-family:var(--mono); font-size:12px; resize:vertical; min-height:80px;"></textarea>
-      <div class="hint" id="keysSummary">0 keys configured · 0 active · rotation enabled</div>
+      <label for="setApiEndpoint">API endpoint</label>
+      <input id="setApiEndpoint" type="text" placeholder="https://sage-api-xxxx.vercel.app/api/chat" />
+      <div class="hint">Your Vercel backend. The Bytez key lives there, not here.</div>
     </div>
+
+    <div class="field"><label for="setModel">Model</label><input id="setModel" type="text" placeholder="Qwen/Qwen3-4B" /><div class="hint">Bytez model ID, e.g. <code>Qwen/Qwen3-4B</code> or <code>openai/gpt-4o</code>.</div></div>
+
     <div class="field">
-      <label for="setKeyStrategy">Key strategy</label>
-      <select id="setKeyStrategy">
-        <option value="round-robin">Round-robin (balanced)</option>
-        <option value="random">Random</option>
-        <option value="least-used">Least used</option>
-        <option value="failover">Failover (primary first)</option>
-      </select>
+      <label>API key</label>
+      <input type="text" value="Managed on server — never in browser" readonly />
+      <div class="hint">Set <code>BYTEZ_API_KEY</code> as an environment variable on Vercel.</div>
     </div>
 
     <div class="row-2">
       <div class="field"><label for="setTemperature">Temperature</label><input id="setTemperature" type="number" min="0" max="2" step="0.1" /></div>
-      <div class="field"><label for="setMaxTokens">Max tokens</label><input id="setMaxTokens" type="number" min="1" max="16384" step="1" /></div>
+      <div class="field"><label for="setAssetsBase">Assets folder</label><input id="setAssetsBase" type="text" placeholder="./assets/" /></div>
     </div>
-    <div class="row-2">
-      <div class="field"><label for="setSeed">Seed</label><input id="setSeed" type="number" min="0" step="1" /></div>
-      <div class="field">
-        <label for="setReasoning">Reasoning effort</label>
-        <select id="setReasoning">
-          <option value="">Off (default)</option>
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
-          <option value="max">Max</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="field"><label for="setAssetsBase">Assets folder</label><input id="setAssetsBase" type="text" placeholder="./assets/" /></div>
 
     <div class="toggle-row">
       <div class="info"><div class="title">Auto-speak responses</div><div class="desc">SAGE reads replies aloud.</div></div>
@@ -1455,20 +1309,6 @@ a { color: var(--cyan-300); text-decoration: none; }
   </div>
 </div>
 
-<!-- KEYS MANAGER -->
-<div class="modal-scrim" id="keysScrim">
-  <div class="modal" style="position:relative; max-width: 560px;" role="dialog" aria-modal="true">
-    <button class="modal-close" id="keysClose" aria-label="Close">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-    </button>
-    <h2>NVIDIA API keys</h2>
-    <p class="sub" id="keysSub">—</p>
-    <div id="keysBody" style="display:flex; flex-direction:column; gap:8px; max-height: 60vh; overflow-y:auto;"></div>
-    <div class="actions"><button class="btn primary" id="keysPrimary">+ Add key</button></div>
-  </div>
-</div>
-
-<!-- LIST -->
 <div class="modal-scrim" id="listScrim">
   <div class="modal" style="position:relative; max-width: 560px;" role="dialog" aria-modal="true">
     <button class="modal-close" id="listClose" aria-label="Close">
@@ -1481,7 +1321,6 @@ a { color: var(--cyan-300); text-decoration: none; }
   </div>
 </div>
 
-<!-- CONFIRM -->
 <div class="modal-scrim" id="confirmScrim">
   <div class="modal" style="position:relative; max-width: 420px;" role="alertdialog" aria-modal="true">
     <h2 id="confirmTitle">Are you sure?</h2>
@@ -1494,15 +1333,11 @@ a { color: var(--cyan-300); text-decoration: none; }
   </div>
 </div>
 
-<!-- LIGHTBOX -->
-<div class="lightbox" id="lightbox"><img id="lightboxImg" alt="" /></div>
-
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 /* ============================================================
-   SAGE — Character Edition (video-clip character)
-   NVIDIA MULTI-KEY + VISION + REASONING integration
+   SAGE — Frontend (GitHub Pages) talking to Vercel → Bytez
    ============================================================ */
 'use strict';
 
@@ -1513,12 +1348,11 @@ const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(
 const now = () => new Date();
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const maskKey = (k) => k.length <= 10 ? k.slice(0,4) + '…' : k.slice(0,7) + '…' + k.slice(-4);
 
 /* ---------- IndexedDB ---------- */
-const IDB_NAME = 'sage.char.v3';
+const IDB_NAME = 'sage.char.v1';
 const IDB_VERSION = 1;
-const IDB_STORES = ['conversations', 'messages', 'tasks', 'reminders', 'memories', 'files', 'keys'];
+const IDB_STORES = ['conversations', 'messages', 'tasks', 'reminders', 'memories', 'files'];
 let idb = null;
 
 function openIDB() {
@@ -1535,7 +1369,7 @@ function openIDB() {
         s.createIndex('conversationId', 'conversationId');
         s.createIndex('createdAt', 'createdAt');
       }
-      ['tasks', 'reminders', 'memories', 'files', 'keys'].forEach((n) => {
+      ['tasks', 'reminders', 'memories', 'files'].forEach((n) => {
         if (!db.objectStoreNames.contains(n)) db.createObjectStore(n, { keyPath: 'id' });
       });
     };
@@ -1558,18 +1392,13 @@ const dbDel = (s, id) => tx(s, 'readwrite', (o) => o.delete(id));
 const dbAll = (s) => tx(s, 'readonly', (o) => o.getAll());
 const dbIndex = (s, i, v) => tx(s, 'readonly', (o) => o.index(i).getAll(v));
 
-/* ---------- Settings (NVIDIA multi-key + vision + reasoning defaults) ---------- */
-const LS_KEY = 'sage.char.settings.v4';
+/* ---------- Settings ---------- */
+const LS_KEY = 'sage.char.settings.v2';
 const DEFAULTS = {
   name: '',
-  baseUrl: 'https://integrate.api.nvidia.com/v1',
-  model: 'moonshotai/kimi-k3',
-  apiKeys: [],           // array of { id, key, label, addedAt, useCount, lastUsed, status, errorCount }
-  keyStrategy: 'round-robin',
-  temperature: 1,
-  maxTokens: 16384,
-  seed: 0,
-  reasoningEffort: 'max',
+  apiEndpoint: 'https://sage-api-xxxx.vercel.app/api/chat', // ← change to your Vercel URL
+  model: 'Qwen/Qwen3-4B',
+  temperature: 0.7,
   assetsBase: './assets/',
   autoSpeak: false,
   memoryEnabled: true,
@@ -1578,100 +1407,16 @@ const DEFAULTS = {
   onboarded: false,
 };
 const loadSettings = () => {
-  try {
-    const raw = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
-    const merged = { ...DEFAULTS, ...raw };
-    if (raw.apiKey && (!merged.apiKeys || !merged.apiKeys.length)) {
-      merged.apiKeys = [{ id: uid(), key: raw.apiKey, label: 'Primary', addedAt: now().toISOString(), useCount: 0, lastUsed: null, status: 'active', errorCount: 0 }];
-    }
-    delete merged.apiKey;
-    return merged;
-  } catch { return { ...DEFAULTS }; }
+  try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(LS_KEY) || '{}') }; }
+  catch { return { ...DEFAULTS }; }
 };
 const saveSettings = () => localStorage.setItem(LS_KEY, JSON.stringify(settings));
 let settings = loadSettings();
 
-/* ---------- KEY MANAGER ---------- */
-const KeyManager = {
-  all() { return settings.apiKeys || []; },
-  active() { return this.all().filter(k => k.status === 'active' && k.key); },
-  hasKeys() { return this.active().length > 0; },
-
-  add(key, label = '') {
-    key = String(key).trim();
-    if (!key) return null;
-    const entry = {
-      id: uid(),
-      key,
-      label: label || `Key ${this.all().length + 1}`,
-      addedAt: now().toISOString(),
-      useCount: 0,
-      lastUsed: null,
-      status: 'active',
-      errorCount: 0,
-    };
-    settings.apiKeys.push(entry);
-    saveSettings();
-    return entry;
-  },
-
-  remove(id) {
-    settings.apiKeys = this.all().filter(k => k.id !== id);
-    saveSettings();
-  },
-
-  toggle(id) {
-    const k = this.all().find(x => x.id === id);
-    if (!k) return;
-    k.status = k.status === 'active' ? 'disabled' : 'active';
-    k.errorCount = 0;
-    saveSettings();
-  },
-
-  markSuccess(id) {
-    const k = this.all().find(x => x.id === id);
-    if (!k) return;
-    k.useCount = (k.useCount || 0) + 1;
-    k.lastUsed = now().toISOString();
-    k.errorCount = 0;
-    if (k.status === 'error') k.status = 'active';
-    saveSettings();
-  },
-
-  markFailure(id, permanent = false) {
-    const k = this.all().find(x => x.id === id);
-    if (!k) return;
-    k.errorCount = (k.errorCount || 0) + 1;
-    k.lastUsed = now().toISOString();
-    if (permanent || k.errorCount >= 3) k.status = 'error';
-    saveSettings();
-  },
-
-  chain() {
-    const list = this.active();
-    if (!list.length) return [];
-    const strategy = settings.keyStrategy || 'round-robin';
-    if (strategy === 'failover') return list.slice();
-    if (strategy === 'least-used') return list.slice().sort((a, b) => (a.useCount || 0) - (b.useCount || 0));
-    if (strategy === 'random') return list.slice().sort(() => Math.random() - 0.5);
-    return list.slice().sort((a, b) => {
-      const at = a.lastUsed ? new Date(a.lastUsed).getTime() : 0;
-      const bt = b.lastUsed ? new Date(b.lastUsed).getTime() : 0;
-      return at - bt;
-    });
-  },
-
-  summary() {
-    const all = this.all();
-    const active = this.active();
-    return `${all.length} key${all.length === 1 ? '' : 's'} configured · ${active.length} active · ${settings.keyStrategy} strategy`;
-  }
-};
-
 /* ---------- State ---------- */
 const state = {
   currentConversationId: null,
-  messages: [],           // messages actually persisted
+  messages: [],
   conversations: [],
   tasks: [],
   reminders: [],
@@ -1681,8 +1426,6 @@ const state = {
   listening: false,
   recognition: null,
   controller: null,
-  lastKeyId: null,
-  attachments: [],        // [{ id, dataUrl, name, mime }]
 };
 
 /* ---------- DOM ---------- */
@@ -1694,13 +1437,10 @@ const characterStage = $('#characterStage');
 const inputEl = $('#input');
 const sendBtn = $('#sendBtn');
 const micBtn = $('#micBtn');
-const attachBtn = $('#attachBtn');
-const attachTray = $('#attachTray');
 const privacyNote = $('#privacyNote');
 const panel = $('#panel');
 const panelScrim = $('#panelScrim');
 
-/* Video elements — one per state */
 const videos = {
   IDLE:      $('#charVideoIdle'),
   LISTENING: $('#charVideoListening'),
@@ -1715,50 +1455,27 @@ const videos = {
 function applySettings() {
   document.documentElement.dataset.motion = settings.reduceMotion ? 'reduced' : 'normal';
   $('#setName').value = settings.name || '';
-  $('#setBaseUrl').value = settings.baseUrl;
+  $('#setApiEndpoint').value = settings.apiEndpoint;
   $('#setModel').value = settings.model;
-  $('#setKeys').value = (settings.apiKeys || []).map(k => k.key).join('\n');
-  $('#setKeyStrategy').value = settings.keyStrategy || 'round-robin';
   $('#setTemperature').value = settings.temperature;
-  $('#setMaxTokens').value = settings.maxTokens;
-  $('#setSeed').value = settings.seed;
-  $('#setReasoning').value = settings.reasoningEffort || '';
   $('#setAssetsBase').value = settings.assetsBase;
   $('#tglAutoSpeak').setAttribute('aria-checked', String(settings.autoSpeak));
   $('#tglMemory').setAttribute('aria-checked', String(settings.memoryEnabled));
   $('#tglMotion').setAttribute('aria-checked', String(settings.reduceMotion));
   $('#tglFollow').setAttribute('aria-checked', String(settings.headFollow));
-  updateKeysSummary();
-  updateKeysCount();
 
   const base = settings.assetsBase.endsWith('/') ? settings.assetsBase : settings.assetsBase + '/';
-  for (const [key, v] of Object.entries({
+  for (const [key, name] of Object.entries({
     Idle: 'idle', Listening: 'listening', Thinking: 'thinking',
     Speaking: 'speaking', Error: 'error'
   })) {
     const el = $('#charVideo' + key);
-    const want = base + v + '.webm';
-    if (el.src !== want && !el.src.endsWith(want)) el.src = want;
+    const want = base + name + '.webm';
+    if (!el.src.endsWith(want)) el.src = want;
   }
 }
-function updateKeysSummary() {
-  const el = $('#keysSummary');
-  if (!el) return;
-  const all = KeyManager.all();
-  const active = KeyManager.active();
-  const errored = all.filter(k => k.status === 'error').length;
-  const disabled = all.filter(k => k.status === 'disabled').length;
-  el.textContent = `${all.length} key${all.length === 1 ? '' : 's'} · ${active.length} active` +
-    (errored ? ` · ${errored} errored` : '') +
-    (disabled ? ` · ${disabled} disabled` : '') +
-    ` · ${settings.keyStrategy}`;
-}
-function updateKeysCount() {
-  const el = $('#keysCount');
-  if (el) el.textContent = String(KeyManager.all().length);
-}
 
-/* ---------- Assistant state + video switching ---------- */
+/* ---------- Assistant state ---------- */
 function setAssistantState(s) {
   if (state.assistant === s) return;
   state.assistant = s;
@@ -1775,10 +1492,7 @@ function setAssistantState(s) {
     if (v === target) v.classList.add('active');
     else v.classList.remove('active');
   }
-  if (target) {
-    target.currentTime = 0;
-    target.play().catch(() => {});
-  }
+  if (target) { target.currentTime = 0; target.play().catch(() => {}); }
 
   if (s === 'THINKING' || s === 'PROCESSING') startFlow();
   else stopFlow();
@@ -1999,7 +1713,6 @@ function stopWave() {
 /* ---------- HEAD FOLLOWS CURSOR ---------- */
 let followTarget = { x: 0, y: 0 };
 let followCurrent = { x: 0, y: 0 };
-
 function initFollow() {
   window.addEventListener('mousemove', (e) => {
     if (!settings.headFollow || settings.reduceMotion) return;
@@ -2148,7 +1861,7 @@ function tryLocalIntent(text) {
   return null;
 }
 
-/* ---------- AI CALL (NVIDIA MULTI-KEY + VISION + REASONING) ---------- */
+/* ---------- AI CALL — via Vercel → Bytez ---------- */
 function systemPrompt() {
   const mem = settings.memoryEnabled && state.memories.length
     ? `\n\nKnown facts and preferences about the user:\n${state.memories.slice(-20).map((m) => `- ${m.content}`).join('\n')}`
@@ -2158,73 +1871,44 @@ You are intelligent, calm, professional, concise, context-aware, and slightly fu
 Reply in clean prose. Use markdown only when it genuinely helps.
 Never claim to have performed actions you did not perform.
 You cannot browse the web from this application; if asked to search, explain that and offer to summarize what the user pastes.
-If the user shares images, describe or analyze them accurately.
 Current date/time: ${new Date().toLocaleString()}.${mem}`;
 }
 
-/** Build the messages array for the NVIDIA NIM payload, with optional vision blocks. */
-function buildMessages(userMessage, attachments) {
-  // History: reconstruct plain text turns. We persist attachments separately,
-  // so we include them again here if the user re-sends, but normal turns are text-only.
+async function callAI(userMessage, { onDelta, signal } = {}) {
+  if (!settings.apiEndpoint) throw new Error('NO_ENDPOINT');
+
   const history = state.messages
     .filter((m) => m.role === 'user' || m.role === 'assistant')
     .slice(-20)
     .map((m) => ({ role: m.role, content: m.content }));
 
-  // Build content blocks for the current user turn.
-  const contentBlocks = [{ type: 'text', text: userMessage || '' }];
-  for (const att of attachments || []) {
-    contentBlocks.push({
-      type: 'image_url',
-      image_url: { url: att.dataUrl },
-    });
-  }
-  // If no attachments, use plain string content for maximum compatibility.
-  const userContent = contentBlocks.length === 1
-    ? contentBlocks[0].text
-    : contentBlocks;
-
-  return [
+  const messages = [
     { role: 'system', content: systemPrompt() },
     ...history,
-    { role: 'user', content: userContent },
+    { role: 'user', content: userMessage },
   ];
-}
 
-/** Single attempt against one key. Throws on failure. */
-async function callAIOnce(userMessage, keyEntry, attachments, { onDelta, onReasoning, signal } = {}) {
-  const body = {
-    model: settings.model,
-    messages: buildMessages(userMessage, attachments),
-    max_tokens: Number(settings.maxTokens) || 16384,
-    seed: Number.isFinite(Number(settings.seed)) ? Number(settings.seed) : 0,
-    stream: true,
-    temperature: Number(settings.temperature) || 1,
-  };
-  if (settings.reasoningEffort) body.reasoning_effort = settings.reasoningEffort;
-
-  const url = settings.baseUrl.replace(/\/$/, '') + '/chat/completions';
-  const res = await fetch(url, {
+  const res = await fetch(settings.apiEndpoint, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${keyEntry.key}`,
-      'Accept': 'text/event-stream',
-    },
-    body: JSON.stringify(body),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      messages,
+      model: settings.model,
+      temperature: Number(settings.temperature) || 0.7,
+      stream: true,
+    }),
     signal,
   });
+
   if (!res.ok) {
     const e = await res.text().catch(() => '');
-    const err = new Error(`API_ERROR_${res.status}:${e.slice(0, 200)}`);
-    err.status = res.status;
-    throw err;
+    throw new Error(`API_ERROR_${res.status}:${e.slice(0, 200)}`);
   }
   if (!res.body) throw new Error('NO_STREAM');
 
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
-  let buffer = '', full = '', reasoning = '';
+  let buffer = '', full = '';
 
   while (true) {
     const { done, value } = await reader.read();
@@ -2239,241 +1923,70 @@ async function callAIOnce(userMessage, keyEntry, attachments, { onDelta, onReaso
       if (payload === '[DONE]') continue;
       try {
         const json = JSON.parse(payload);
-        const choice = json.choices?.[0] || {};
-        const delta = choice.delta || {};
-        // Reasoning field (Kimi K3 / DeepSeek-R1 style)
-        const r = delta.reasoning_content || delta.reasoning || '';
-        if (r) {
-          reasoning += r;
-          onReasoning && onReasoning(r, reasoning);
-        }
-        const content = delta.content;
-        if (content) {
-          full += content;
-          onDelta && onDelta(content, full, reasoning);
-        }
-      } catch {}
+        // Bytez returns { output: "..." } or OpenAI-style { choices: [{ delta: { content } }] }
+        const delta = json.choices?.[0]?.delta?.content
+                   ?? json.output
+                   ?? json.token
+                   ?? json.delta
+                   ?? '';
+        if (delta) { full += delta; onDelta && onDelta(delta, full); }
+      } catch { /* partial frame */ }
     }
   }
-  return { content: full, reasoning };
-}
-
-/** Try multiple keys in sequence (failover) with the user's chosen strategy. */
-async function callAI(userMessage, attachments, { onDelta, onReasoning, signal, onKeySwitch } = {}) {
-  const chain = KeyManager.chain();
-  if (!chain.length) throw new Error('NO_API_KEY');
-
-  let lastErr = null;
-  for (let i = 0; i < chain.length; i++) {
-    const keyEntry = chain[i];
-    if (onKeySwitch) onKeySwitch(keyEntry, i, chain.length);
-    try {
-      const result = await callAIOnce(userMessage, keyEntry, attachments, { onDelta, onReasoning, signal });
-      KeyManager.markSuccess(keyEntry.id);
-      state.lastKeyId = keyEntry.id;
-      updateKeysSummary();
-      return result;
-    } catch (e) {
-      lastErr = e;
-      if (e.name === 'AbortError') throw e;
-      const status = e.status || 0;
-      const isAuthError = status === 401 || status === 403;
-      const isRateLimit = status === 429;
-      const isServerError = status >= 500;
-      const isNetwork = !status;
-      KeyManager.markFailure(keyEntry.id, isAuthError);
-      updateKeysSummary();
-      if (signal && signal.aborted) throw e;
-      if (isAuthError || isRateLimit || isServerError || isNetwork) continue;
-      throw e;
-    }
-  }
-  throw lastErr || new Error('ALL_KEYS_FAILED');
+  return full;
 }
 
 /* ---------- THREAD / CARDS ---------- */
 function hasThread() { return threadEl.children.length > 0; }
-function refreshThreadState() {
-  characterStage.classList.toggle('has-thread', hasThread());
-}
+function refreshThreadState() { characterStage.classList.toggle('has-thread', hasThread()); }
+
 function appendCard(role, content, opts = {}) {
   const card = document.createElement('article');
   card.className = `card ${role}`;
   const label = role === 'user' ? (settings.name || 'You') : 'SAGE';
   card.innerHTML = `
     <header class="card-header"><span class="dot"></span><span>${esc(label)}</span></header>
-    <div class="card-images" style="display:none;"></div>
     <div class="card-body"></div>`;
-  const imagesBox = card.querySelector('.card-images');
   const body = card.querySelector('.card-body');
-
-  if (opts.images && opts.images.length) {
-    imagesBox.style.display = '';
-    for (const img of opts.images) {
-      const el = document.createElement('img');
-      el.src = img.dataUrl;
-      el.alt = img.name || 'attachment';
-      el.addEventListener('click', () => openLightbox(img.dataUrl));
-      imagesBox.appendChild(el);
-    }
-  }
-
+  body.innerHTML = opts.markdown ? renderMarkdown(content) : esc(content).replace(/\n/g, '<br>');
   if (opts.toolLine) {
     const line = document.createElement('div');
     line.className = 'tool-line';
     line.innerHTML = `<span class="spin"></span>${esc(opts.toolLine)}`;
-    card.insertBefore(line, imagesBox);
+    card.insertBefore(line, body);
     card._toolLine = line;
   }
-
-  body.innerHTML = opts.markdown ? renderMarkdown(content) : esc(content).replace(/\n/g, '<br>');
-
   threadEl.appendChild(card);
   threadEl.scrollTop = threadEl.scrollHeight;
   refreshThreadState();
   return { card, body };
 }
-async function persistMessage(role, content, extra = {}) {
+
+async function persistMessage(role, content) {
   if (!state.currentConversationId) {
-    const conv = { id: uid(), title: (content || 'Image').slice(0, 60) || 'New conversation',
+    const conv = { id: uid(), title: content.slice(0, 60) || 'New conversation',
       createdAt: now().toISOString(), updatedAt: now().toISOString() };
     await dbPut('conversations', conv);
     state.currentConversationId = conv.id;
     state.conversations.push(conv);
   }
-  const msg = {
-    id: uid(),
-    conversationId: state.currentConversationId,
-    role, content,
-    attachments: extra.attachments ? extra.attachments.map(a => ({ id: a.id, name: a.name, mime: a.mime, dataUrl: a.dataUrl })) : undefined,
-    createdAt: now().toISOString(),
-  };
+  const msg = { id: uid(), conversationId: state.currentConversationId, role, content, createdAt: now().toISOString() };
   await dbPut('messages', msg);
   state.messages.push(msg);
   const conv = state.conversations.find((c) => c.id === state.currentConversationId);
   if (conv) { conv.updatedAt = now().toISOString(); await dbPut('conversations', conv); }
 }
 
-/* ---------- LIGHTBOX ---------- */
-function openLightbox(src) {
-  const lb = $('#lightbox');
-  $('#lightboxImg').src = src;
-  lb.classList.add('show');
-}
-$('#lightbox').addEventListener('click', () => $('#lightbox').classList.remove('show'));
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && $('#lightbox').classList.contains('show')) $('#lightbox').classList.remove('show');
-});
-
-/* ---------- ATTACHMENTS ---------- */
-const MAX_ATTACHMENTS = 6;
-const MAX_ATTACH_BYTES = 5 * 1024 * 1024;
-
-function renderAttachTray() {
-  attachTray.innerHTML = '';
-  for (const att of state.attachments) {
-    const wrap = document.createElement('div');
-    wrap.className = 'attach-thumb';
-    wrap.innerHTML = `<img src="${att.dataUrl}" alt="${esc(att.name)}" /><button class="remove" aria-label="Remove">×</button>`;
-    wrap.querySelector('.remove').addEventListener('click', () => {
-      state.attachments = state.attachments.filter(a => a.id !== att.id);
-      renderAttachTray();
-      refreshSendEnabled();
-    });
-    attachTray.appendChild(wrap);
-  }
-}
-function fileToDataURL(file) {
-  return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(r.result);
-    r.onerror = () => reject(r.error);
-    r.readAsDataURL(file);
-  });
-}
-async function addAttachmentFromFile(file) {
-  if (!file || !file.type.startsWith('image/')) { toast('Only image files are supported for vision.'); return; }
-  if (file.size > MAX_ATTACH_BYTES) { toast('Image too large (5 MB max).'); return; }
-  if (state.attachments.length >= MAX_ATTACHMENTS) { toast(`Up to ${MAX_ATTACHMENTS} images per message.`); return; }
-  const dataUrl = await fileToDataURL(file);
-  state.attachments.push({ id: uid(), dataUrl, name: file.name || 'image', mime: file.type });
-  renderAttachTray();
-  refreshSendEnabled();
-}
-function pickImages() {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'image/*';
-  input.multiple = true;
-  input.onchange = async () => {
-    for (const f of input.files) await addAttachmentFromFile(f);
-    input.value = '';
-  };
-  input.click();
-}
-attachBtn.addEventListener('click', pickImages);
-
-/* Paste images from clipboard */
-document.addEventListener('paste', async (e) => {
-  if (!e.clipboardData) return;
-  const items = [...e.clipboardData.items].filter(it => it.type.startsWith('image/'));
-  if (!items.length) return;
-  e.preventDefault();
-  for (const it of items) {
-    const f = it.getAsFile();
-    if (f) await addAttachmentFromFile(f);
-  }
-});
-
-/* Drag & drop images */
-['dragenter', 'dragover'].forEach((ev) => {
-  window.addEventListener(ev, (e) => {
-    if (e.dataTransfer?.types?.includes('Files')) {
-      e.preventDefault();
-      document.body.style.outline = '2px dashed rgba(34,211,238,0.5)';
-      document.body.style.outlineOffset = '-12px';
-    }
-  });
-});
-['dragleave', 'drop'].forEach((ev) => {
-  window.addEventListener(ev, (e) => {
-    e.preventDefault();
-    document.body.style.outline = '';
-    document.body.style.outlineOffset = '';
-  });
-});
-window.addEventListener('drop', async (e) => {
-  const files = e.dataTransfer?.files;
-  if (!files || !files.length) return;
-  const imgs = [...files].filter(f => f.type.startsWith('image/'));
-  if (imgs.length) {
-    for (const f of imgs) await addAttachmentFromFile(f);
-  } else if (files[0]) {
-    // fall through to document ingestion for non-images
-    await ingestFile(files[0]);
-  }
-});
-
 /* ---------- PIPELINE ---------- */
-function refreshSendEnabled() {
-  sendBtn.disabled = !(inputEl.value.trim() || state.attachments.length);
-}
 async function handleUserMessage(raw) {
   const text = raw.trim();
-  const attachments = state.attachments.slice();
-  if (!text && !attachments.length) return;
-
-  // Show user card with images
-  appendCard('user', text || '(image)', { images: attachments });
-  await persistMessage('user', text || '(image)', { attachments });
-
-  // Clear attachments after send
-  state.attachments = [];
-  renderAttachTray();
+  if (!text) return;
+  appendCard('user', text);
+  await persistMessage('user', text);
   clearInput();
 
-  const intent = text ? tryLocalIntent(text) : null;
-  if (intent && !attachments.length) {
+  const intent = tryLocalIntent(text);
+  if (intent) {
     setAssistantState('PROCESSING');
     const { card, body } = appendCard('assistant', '', { toolLine: `Running ${intent.tool}…` });
     const result = await runTool(intent.tool, intent.args);
@@ -2493,45 +2006,16 @@ async function handleUserMessage(raw) {
   }
 
   setAssistantState('THINKING');
-  const { card, body } = appendCard('assistant', '');
+  const { body } = appendCard('assistant', '');
   body.classList.add('stream-caret');
-
-  // Tool-line for key + reasoning indicator
-  const keyLine = document.createElement('div');
-  keyLine.className = 'tool-line';
-  keyLine.innerHTML = `<span class="spin"></span>Selecting API key…`;
-  card.insertBefore(keyLine, body);
-
-  // Reasoning trace box (only shown if we get reasoning tokens)
-  const reasonBox = document.createElement('div');
-  reasonBox.className = 'reasoning';
-  reasonBox.style.display = 'none';
-  reasonBox.innerHTML = `<div class="reasoning-label">Reasoning</div><div class="reasoning-text"></div>`;
-  card.insertBefore(reasonBox, body);
-
   let buffer = '';
-  let reasoningBuf = '';
   state.controller = new AbortController();
 
   try {
-    await callAI(text || 'Describe this image.', attachments, {
+    await callAI(text, {
       signal: state.controller.signal,
-      onKeySwitch: (k, idx, total) => {
-        keyLine.innerHTML = `<span class="spin"></span>Using ${esc(k.label || 'key')} (${idx + 1}/${total}) · ${maskKey(k.key)}`;
-      },
-      onReasoning: (_chunk, full) => {
-        reasoningBuf = full;
-        reasonBox.style.display = '';
-        reasonBox.querySelector('.reasoning-text').textContent = reasoningBuf;
-        threadEl.scrollTop = threadEl.scrollHeight;
-      },
       onDelta: (_d, full) => {
         if (state.assistant !== 'RESPONDING') { setAssistantState('RESPONDING'); startWave(); }
-        if (keyLine.parentNode) {
-          keyLine.classList.add('done');
-          const k = KeyManager.all().find(x => x.id === state.lastKeyId);
-          keyLine.innerHTML = `<span class="spin"></span>Streaming via ${esc(k?.label || 'NVIDIA')}`;
-        }
         buffer = full;
         body.innerHTML = renderMarkdown(buffer);
         threadEl.scrollTop = threadEl.scrollHeight;
@@ -2554,17 +2038,12 @@ async function handleUserMessage(raw) {
     }
     setAssistantState('ERROR');
     let msg;
-    if (e.message === 'NO_API_KEY' || e.message === 'ALL_KEYS_FAILED') {
-      if (!KeyManager.all().length) msg = "I need at least one NVIDIA API key. Open **Settings** and paste one or more keys (one per line).";
-      else if (!KeyManager.active().length) msg = "All API keys are currently marked as errored or disabled. Open **Settings** to review them.";
-      else msg = "All API keys failed. Check your keys in **Settings** or try again shortly.";
-    }
-    else if (e.message?.startsWith('API_ERROR_401')) msg = "All keys were rejected by NVIDIA (401). Verify your API keys.";
-    else if (e.message?.startsWith('API_ERROR_403')) msg = "Access forbidden (403). Verify key permissions and model access.";
-    else if (e.message?.startsWith('API_ERROR_404')) msg = "Model not found (404). Check the model name in **Settings**.";
-    else if (e.message?.startsWith('API_ERROR_429')) msg = "All keys hit NVIDIA rate limits (429). Try again shortly.";
-    else if (e.message?.startsWith('API_ERROR_')) msg = "The NVIDIA API returned an error across all keys. Please try again.";
-    else msg = "I couldn't complete that request. Please check your connection and keys in Settings.";
+    if (e.message === 'NO_ENDPOINT') msg = "I need an API endpoint first. Open **Settings** and set the Vercel URL.";
+    else if (e.message?.startsWith('API_ERROR_403')) msg = "The server rejected this origin. Ask the operator to add this site to CORS_ORIGINS.";
+    else if (e.message?.startsWith('API_ERROR_401')) msg = "The server's API key was rejected. Check the Vercel environment.";
+    else if (e.message?.startsWith('API_ERROR_429')) msg = "Rate limited. Try again shortly.";
+    else if (e.message?.startsWith('API_ERROR_')) msg = "The server returned an error. Please try again.";
+    else msg = "I couldn't complete that request. Please check your connection and settings.";
     body.innerHTML = renderMarkdown(msg);
     await persistMessage('assistant', msg);
     setTimeout(() => setAssistantState('IDLE'), 2400);
@@ -2572,6 +2051,7 @@ async function handleUserMessage(raw) {
     state.controller = null;
   }
 }
+
 function localReply(tool, r) {
   if (!r.ok) return `I couldn't complete that: ${r.error || 'unknown error'}.`;
   switch (tool) {
@@ -2588,22 +2068,22 @@ function localReply(tool, r) {
 function clearInput() {
   inputEl.value = '';
   inputEl.style.height = 'auto';
-  refreshSendEnabled();
+  sendBtn.disabled = true;
 }
 inputEl.addEventListener('input', () => {
+  sendBtn.disabled = !inputEl.value.trim();
   inputEl.style.height = 'auto';
   inputEl.style.height = Math.min(inputEl.scrollHeight, 140) + 'px';
-  refreshSendEnabled();
 });
 inputEl.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
-    if (inputEl.value.trim() || state.attachments.length) handleUserMessage(inputEl.value);
+    if (inputEl.value.trim()) handleUserMessage(inputEl.value);
   }
 });
 $('#composer').addEventListener('submit', (e) => {
   e.preventDefault();
-  if (inputEl.value.trim() || state.attachments.length) handleUserMessage(inputEl.value);
+  if (inputEl.value.trim()) handleUserMessage(inputEl.value);
 });
 $('#chips').addEventListener('click', (e) => {
   const chip = e.target.closest('.chip');
@@ -2698,7 +2178,6 @@ $$('.panel-btn[data-view]').forEach((btn) => {
     $$('.panel-btn[data-view]').forEach((b) => b.classList.toggle('active', b === btn));
     const v = btn.dataset.view;
     if (v === 'assistant') { closePanel(); return; }
-    if (v === 'keys') { openKeysModal(); closePanel(); return; }
     openListModal(v);
     closePanel();
   });
@@ -2875,63 +2354,6 @@ listPrimary.addEventListener('click', async () => {
   }
 });
 
-/* ---------- KEYS MODAL ---------- */
-const keysScrim = $('#keysScrim');
-const keysSub = $('#keysSub');
-const keysBody = $('#keysBody');
-function openKeysModal() {
-  keysScrim.classList.add('show');
-  renderKeys();
-}
-function closeKeysModal() { keysScrim.classList.remove('show'); }
-$('#keysClose').addEventListener('click', closeKeysModal);
-keysScrim.addEventListener('click', (e) => { if (e.target === keysScrim) closeKeysModal(); });
-function renderKeys() {
-  const list = KeyManager.all();
-  keysSub.textContent = list.length
-    ? `${list.length} key${list.length === 1 ? '' : 's'} · strategy: ${settings.keyStrategy}`
-    : 'No keys configured';
-  keysBody.innerHTML = '';
-  if (!list.length) {
-    keysBody.innerHTML = `<div style="text-align:center; padding:40px 20px; color:var(--text-faint);">Paste one or more NVIDIA API keys in Settings, one per line.</div>`;
-    return;
-  }
-  for (const k of list) {
-    const row = document.createElement('div');
-    row.style.cssText = 'display:flex; gap:10px; align-items:center; padding:12px 14px; border:1px solid var(--glass-border); border-radius:12px; background: rgba(34,211,238,0.03);';
-    const statusColor = k.status === 'active' ? 'var(--cyan-300)' : k.status === 'error' ? 'var(--danger)' : 'var(--text-faint)';
-    const last = k.lastUsed ? new Date(k.lastUsed).toLocaleString() : 'never';
-    row.innerHTML = `
-      <div style="flex:1; min-width:0;">
-        <div style="font-size:14px; color: var(--text); display:flex; align-items:center; gap:8px;">
-          <span style="width:7px; height:7px; border-radius:50%; background:${statusColor}; box-shadow:0 0 6px ${statusColor};"></span>
-          <span>${esc(k.label || 'Key')}</span>
-          <span style="font-family:var(--mono); font-size:11px; color:var(--text-faint);">${esc(maskKey(k.key))}</span>
-        </div>
-        <div style="font-size:11.5px; color: var(--text-faint); margin-top:4px;">
-          ${k.status} · used ${k.useCount || 0}× · errors ${k.errorCount || 0} · last: ${esc(last)}
-        </div>
-      </div>
-      <button class="btn" data-toggle>${k.status === 'active' ? 'Disable' : 'Enable'}</button>
-      <button class="btn danger" data-del>Delete</button>`;
-    row.querySelector('[data-toggle]').addEventListener('click', () => { KeyManager.toggle(k.id); renderKeys(); updateKeysSummary(); updateKeysCount(); });
-    row.querySelector('[data-del]').addEventListener('click', async () => {
-      const ok = await confirmAction({ title: 'Delete this key?', body: k.label || maskKey(k.key), risk: 'High risk · Destructive' });
-      if (!ok) return;
-      KeyManager.remove(k.id);
-      renderKeys(); updateKeysSummary(); updateKeysCount();
-    });
-    keysBody.appendChild(row);
-  }
-}
-$('#keysPrimary').addEventListener('click', () => {
-  const input = prompt('Paste the NVIDIA API key (nvapi-...):');
-  if (!input || !input.trim()) return;
-  const label = prompt('Label for this key (optional):') || '';
-  KeyManager.add(input.trim(), label.trim());
-  renderKeys(); updateKeysSummary(); updateKeysCount();
-});
-
 /* ---------- FILES ---------- */
 function pickFile() {
   const input = document.createElement('input');
@@ -2967,6 +2389,24 @@ async function ingestFile(file) {
   inputEl.value = `Summarize the document "${file.name}".`;
   inputEl.dispatchEvent(new Event('input'));
 }
+['dragenter', 'dragover'].forEach((ev) => {
+  window.addEventListener(ev, (e) => {
+    e.preventDefault();
+    document.body.style.outline = '2px dashed rgba(34,211,238,0.5)';
+    document.body.style.outlineOffset = '-12px';
+  });
+});
+['dragleave', 'drop'].forEach((ev) => {
+  window.addEventListener(ev, (e) => {
+    e.preventDefault();
+    document.body.style.outline = '';
+    document.body.style.outlineOffset = '';
+  });
+});
+window.addEventListener('drop', async (e) => {
+  const f = e.dataTransfer?.files?.[0];
+  if (f) await ingestFile(f);
+});
 
 /* ---------- COUNTS ---------- */
 function updateCounts() {
@@ -2979,12 +2419,9 @@ function updateCounts() {
 function newConversation() {
   state.currentConversationId = null;
   state.messages = [];
-  state.attachments = [];
-  renderAttachTray();
   threadEl.innerHTML = '';
   refreshThreadState();
   setAssistantState('IDLE');
-  refreshSendEnabled();
   inputEl.focus();
 }
 async function loadConversation(id) {
@@ -2995,10 +2432,7 @@ async function loadConversation(id) {
   state.currentConversationId = id;
   state.messages = msgs;
   threadEl.innerHTML = '';
-  for (const m of msgs) {
-    const imgs = (m.attachments || []).map(a => ({ id: a.id, name: a.name, mime: a.mime, dataUrl: a.dataUrl }));
-    appendCard(m.role, m.content, { markdown: m.role === 'assistant', images: imgs });
-  }
+  for (const m of msgs) appendCard(m.role, m.content, { markdown: m.role === 'assistant' });
   refreshThreadState();
   setAssistantState('IDLE');
 }
@@ -3015,33 +2449,9 @@ $('#saveSettings').addEventListener('click', closeSettings);
 settingsScrim.addEventListener('click', (e) => { if (e.target === settingsScrim) closeSettings(); });
 
 $('#setName').addEventListener('input', (e) => { settings.name = e.target.value; saveSettings(); });
-$('#setBaseUrl').addEventListener('input', (e) => { settings.baseUrl = e.target.value; saveSettings(); });
+$('#setApiEndpoint').addEventListener('input', (e) => { settings.apiEndpoint = e.target.value.trim(); saveSettings(); });
 $('#setModel').addEventListener('input', (e) => { settings.model = e.target.value; saveSettings(); });
-
-$('#setKeys').addEventListener('input', (e) => {
-  const lines = e.target.value.split('\n').map(l => l.trim()).filter(Boolean);
-  const existingByKey = new Map(KeyManager.all().map(k => [k.key, k]));
-  const next = lines.map((key, idx) => {
-    const existing = existingByKey.get(key);
-    if (existing) return existing;
-    return {
-      id: uid(), key,
-      label: `Key ${idx + 1}`,
-      addedAt: now().toISOString(),
-      useCount: 0, lastUsed: null,
-      status: 'active', errorCount: 0,
-    };
-  });
-  settings.apiKeys = next;
-  saveSettings();
-  updateKeysSummary();
-  updateKeysCount();
-});
-$('#setKeyStrategy').addEventListener('change', (e) => { settings.keyStrategy = e.target.value; saveSettings(); updateKeysSummary(); });
-$('#setTemperature').addEventListener('input', (e) => { settings.temperature = parseFloat(e.target.value) || 1; saveSettings(); });
-$('#setMaxTokens').addEventListener('input', (e) => { settings.maxTokens = Math.max(1, parseInt(e.target.value, 10) || 16384); saveSettings(); });
-$('#setSeed').addEventListener('input', (e) => { settings.seed = parseInt(e.target.value, 10) || 0; saveSettings(); });
-$('#setReasoning').addEventListener('change', (e) => { settings.reasoningEffort = e.target.value || ''; saveSettings(); });
+$('#setTemperature').addEventListener('input', (e) => { settings.temperature = parseFloat(e.target.value) || 0.7; saveSettings(); });
 $('#setAssetsBase').addEventListener('input', (e) => {
   settings.assetsBase = e.target.value.trim();
   saveSettings(); applySettings();
@@ -3069,7 +2479,7 @@ bindToggle('#tglFollow', 'headFollow');
 $('#wipeBtn').addEventListener('click', async () => {
   const ok = await confirmAction({
     title: 'Erase all local SAGE data?',
-    body: 'Conversations, tasks, reminders, memories, files, and API keys will be permanently removed from this browser.',
+    body: 'Conversations, tasks, reminders, memories, and files will be permanently removed from this browser.',
     risk: 'High risk · Destructive · Cannot be undone',
   });
   if (!ok) return;
@@ -3093,7 +2503,6 @@ document.addEventListener('keydown', (e) => {
     if (state.controller) { state.controller.abort(); toast('Stopped.'); return; }
     if (state.listening) { stopListening(); return; }
     if (settingsScrim.classList.contains('show')) { closeSettings(); return; }
-    if (keysScrim.classList.contains('show')) { closeKeysModal(); return; }
     if (listScrim.classList.contains('show')) { closeList(); return; }
     if (panel.classList.contains('open')) { closePanel(); return; }
   }
@@ -3106,8 +2515,7 @@ document.addEventListener('keydown', (e) => {
 $('#notifBtn').addEventListener('click', async () => {
   const pending = state.reminders.filter(r => r.status === 'pending').length;
   const openTasks = state.tasks.filter(t => t.status !== 'COMPLETED').length;
-  const keyInfo = KeyManager.summary();
-  toast(`${pending} pending reminder${pending === 1 ? '' : 's'} · ${openTasks} open task${openTasks === 1 ? '' : 's'} · ${keyInfo}`, 5000);
+  toast(`${pending} pending reminder${pending === 1 ? '' : 's'} · ${openTasks} open task${openTasks === 1 ? '' : 's'}`);
   if ('Notification' in window && Notification.permission === 'default') {
     try { await Notification.requestPermission(); } catch {}
   }
@@ -3116,7 +2524,7 @@ $('#notifBtn').addEventListener('click', async () => {
 /* ---------- ONBOARDING ---------- */
 async function maybeOnboard() {
   if (settings.onboarded) return;
-  const name = prompt('Welcome to SAGE.\n\nYour personal AI command center powered by NVIDIA multi-key + vision + reasoning.\n\nWhat should I call you?');
+  const name = prompt('Welcome to SAGE.\n\nYour personal AI command center.\n\nWhat should I call you?');
   if (name && name.trim()) settings.name = name.trim();
   settings.onboarded = true;
   saveSettings();
@@ -3146,7 +2554,6 @@ async function boot() {
   updateCounts();
   updateOnline();
   refreshThreadState();
-  refreshSendEnabled();
 
   sizeEnvCanvas(); initEnvParticles(); startEnv();
   initFollow();
