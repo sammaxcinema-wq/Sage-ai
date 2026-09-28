@@ -1,477 +1,1278 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="violet">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Mark LV — Prototype</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="color-scheme" content="dark light" />
+<title>Mark LV — Advanced HUD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#0a0a12;
-    --bg2:#12121f;
-    --panel:rgba(20,20,35,0.72);
-    --stroke:rgba(124,58,237,0.35);
-    --accent:#7C3AED;
-    --accent2:#22D3EE;
-    --text:#E5E7EB;
-    --muted:#9CA3AF;
-    --ok:#22C55E;
-    --warn:#F59E0B;
-    --err:#EF4444;
-    --font:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-    --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%}
-  body{
-    background:
-      radial-gradient(1200px 800px at 20% 10%, rgba(124,58,237,0.15), transparent 60%),
-      radial-gradient(900px 700px at 90% 90%, rgba(34,211,238,0.10), transparent 60%),
-      var(--bg);
-    color:var(--text);
-    font-family:var(--font);
-    overflow:hidden;
-    -webkit-font-smoothing:antialiased;
-  }
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root{
+  /* base palette */
+  --bg-0:#05060a;
+  --bg-1:#0a0b12;
+  --bg-2:#11131d;
+  --bg-3:#181b28;
+  --glass:rgba(20,22,34,.55);
+  --glass-2:rgba(28,31,46,.62);
+  --stroke:rgba(255,255,255,.07);
+  --stroke-2:rgba(255,255,255,.12);
 
-  /* ---------- layout ---------- */
+  /* text */
+  --text:#eef0f7;
+  --text-2:#b8bccd;
+  --text-3:#7c8199;
+  --text-4:#4a4f66;
+
+  /* accent (theme-driven) */
+  --accent:#7c3aed;
+  --accent-2:#22d3ee;
+  --accent-glow:rgba(124,58,237,.45);
+  --accent-soft:rgba(124,58,237,.12);
+
+  /* semantic */
+  --ok:#22c55e;
+  --warn:#f59e0b;
+  --err:#ef4444;
+  --info:#38bdf8;
+
+  /* radii */
+  --r-xs:6px;
+  --r-sm:10px;
+  --r-md:14px;
+  --r-lg:20px;
+  --r-xl:28px;
+  --r-pill:999px;
+
+  /* spacing */
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-7:32px; --s-8:48px;
+
+  /* shadows */
+  --sh-sm:0 1px 2px rgba(0,0,0,.4), 0 1px 1px rgba(0,0,0,.3);
+  --sh-md:0 4px 12px rgba(0,0,0,.35), 0 1px 3px rgba(0,0,0,.4);
+  --sh-lg:0 20px 50px -12px rgba(0,0,0,.6), 0 8px 20px -8px rgba(0,0,0,.4);
+  --sh-glow:0 0 0 1px rgba(124,58,237,.25), 0 0 30px -4px var(--accent-glow);
+
+  /* motion */
+  --ease:cubic-bezier(.4,0,.2,1);
+  --ease-out:cubic-bezier(.16,1,.3,1);
+  --ease-spring:cubic-bezier(.34,1.56,.64,1);
+  --t-fast:120ms;
+  --t-base:220ms;
+  --t-slow:380ms;
+
+  /* typography */
+  --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+
+  /* layout */
+  --header-h:60px;
+  --footer-h:44px;
+  --side-w:420px;
+}
+
+/* theme: cyan */
+[data-theme="cyan"]{
+  --accent:#06b6d4; --accent-2:#a78bfa;
+  --accent-glow:rgba(6,182,212,.45);
+  --accent-soft:rgba(6,182,212,.12);
+}
+/* theme: emerald */
+[data-theme="emerald"]{
+  --accent:#10b981; --accent-2:#f472b6;
+  --accent-glow:rgba(16,185,129,.45);
+  --accent-soft:rgba(16,185,129,.12);
+}
+/* theme: amber */
+[data-theme="amber"]{
+  --accent:#f59e0b; --accent-2:#ec4899;
+  --accent-glow:rgba(245,158,11,.45);
+  --accent-soft:rgba(245,158,11,.12);
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:var(--font);
+  color:var(--text);
+  background:var(--bg-0);
+  font-size:14px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+  overscroll-behavior:none;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+input,select{outline:none}
+::selection{background:var(--accent);color:white}
+
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{
+  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.04));
+  border-radius:5px;border:2px solid transparent;background-clip:padding-box;
+}
+::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,var(--accent-glow),rgba(255,255,255,.06));background-clip:padding-box;border:2px solid transparent}
+
+/* ============================================================
+   AMBIENT BACKGROUND
+   ============================================================ */
+.bg-canvas{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(1400px 900px at 15% 5%, var(--accent-soft), transparent 55%),
+    radial-gradient(1100px 800px at 95% 95%, rgba(34,211,238,.06), transparent 55%),
+    radial-gradient(800px 600px at 50% 50%, rgba(255,255,255,.015), transparent 60%),
+    var(--bg-0);
+}
+.bg-canvas::before{
+  content:"";position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.015) 1px, transparent 1px);
+  background-size:56px 56px;
+  mask-image:radial-gradient(ellipse at center, black 30%, transparent 75%);
+  -webkit-mask-image:radial-gradient(ellipse at center, black 30%, transparent 75%);
+}
+.bg-canvas::after{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 50%, transparent 0%, transparent 40%, rgba(0,0,0,.35) 100%);
+  pointer-events:none;
+}
+#particles{position:fixed;inset:0;z-index:1;pointer-events:none}
+
+/* ============================================================
+   APP SHELL
+   ============================================================ */
+.app{
+  position:relative;z-index:2;
+  display:grid;
+  grid-template-columns:1fr var(--side-w);
+  grid-template-rows:var(--header-h) 1fr var(--footer-h);
+  grid-template-areas:
+    "header header"
+    "stage  side"
+    "footer footer";
+  height:100vh;
+  gap:var(--s-4);
+  padding:var(--s-4);
+  transition:grid-template-columns var(--t-slow) var(--ease);
+}
+.app.side-collapsed{grid-template-columns:1fr 0px}
+.app.side-collapsed .side{opacity:0;pointer-events:none;transform:translateX(20px)}
+
+@media (max-width:960px){
   .app{
-    display:grid;
-    grid-template-columns: 1fr 380px;
-    grid-template-rows: 56px 1fr 40px;
-    grid-template-areas:
-      "header header"
-      "stage  side"
-      "footer footer";
-    height:100vh;
-    gap:14px;
-    padding:14px;
+    grid-template-columns:1fr;
+    grid-template-areas:"header" "stage" "side" "footer";
+    grid-template-rows:var(--header-h) 1fr 300px var(--footer-h);
   }
-  @media (max-width: 900px){
-    .app{grid-template-columns:1fr;grid-template-areas:"header" "stage" "side" "footer";grid-template-rows:56px 1fr 260px 40px}
-  }
+}
 
-  /* ---------- header ---------- */
-  header{
-    grid-area:header;
-    display:flex;align-items:center;gap:16px;
-    padding:0 18px;
-    background:var(--panel);
-    border:1px solid var(--stroke);
-    border-radius:14px;
-    backdrop-filter:blur(12px);
-  }
-  .brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:.3px}
-  .brand .dot{
-    width:10px;height:10px;border-radius:50%;
-    background:var(--accent);
-    box-shadow:0 0 12px var(--accent),0 0 24px var(--accent);
-    animation:pulse 2.4s ease-in-out infinite;
-  }
-  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(.85)}}
-  .brand small{color:var(--muted);font-weight:400;font-size:11px;letter-spacing:1.5px;text-transform:uppercase}
-  .status{
-    margin-left:auto;display:flex;align-items:center;gap:14px;
-    font-size:12px;color:var(--muted);font-family:var(--mono)
-  }
-  .chip{
-    padding:4px 10px;border-radius:20px;
-    background:rgba(124,58,237,0.12);
-    border:1px solid var(--stroke);
-    color:var(--text);font-size:11px;
-  }
-  .chip.ok{background:rgba(34,197,94,0.12);border-color:rgba(34,197,94,0.4);color:var(--ok)}
-  .chip.warn{background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.4);color:var(--warn)}
+/* ============================================================
+   HEADER
+   ============================================================ */
+.header{
+  grid-area:header;
+  display:flex;align-items:center;gap:var(--s-4);
+  padding:0 var(--s-5);
+  background:var(--glass);
+  border:1px solid var(--stroke);
+  border-radius:var(--r-md);
+  backdrop-filter:blur(20px) saturate(140%);
+  -webkit-backdrop-filter:blur(20px) saturate(140%);
+  box-shadow:var(--sh-md);
+  position:relative;
+  overflow:hidden;
+}
+.header::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--accent-glow),transparent);
+  opacity:.7;
+}
 
-  /* ---------- stage ---------- */
-  .stage{
-    grid-area:stage;
-    position:relative;
-    background:var(--panel);
-    border:1px solid var(--stroke);
-    border-radius:18px;
-    overflow:hidden;
-    backdrop-filter:blur(12px);
-    display:flex;flex-direction:column;
-  }
-  .stage canvas{flex:1;display:block;width:100%;height:100%}
-  .stage .overlay{
-    position:absolute;inset:0;pointer-events:none;
-    display:flex;flex-direction:column;justify-content:space-between;padding:18px;
-  }
-  .stage .toprow{display:flex;justify-content:space-between;align-items:flex-start}
-  .badge{
-    pointer-events:none;
-    background:rgba(10,10,18,0.6);
-    border:1px solid var(--stroke);
-    border-radius:10px;padding:8px 12px;
-    font-size:11px;font-family:var(--mono);color:var(--muted);
-  }
-  .badge b{color:var(--accent2);font-weight:500}
+.brand{display:flex;align-items:center;gap:var(--s-3);flex-shrink:0}
+.brand-mark{
+  position:relative;
+  width:30px;height:30px;border-radius:9px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:grid;place-items:center;
+  box-shadow:0 0 0 1px rgba(255,255,255,.1), 0 6px 20px -4px var(--accent-glow);
+  animation:brand-pulse 3.2s var(--ease) infinite;
+}
+.brand-mark::after{
+  content:"";position:absolute;inset:6px;border-radius:50%;
+  background:rgba(255,255,255,.9);
+  box-shadow:0 0 10px rgba(255,255,255,.8);
+}
+@keyframes brand-pulse{
+  0%,100%{box-shadow:0 0 0 1px rgba(255,255,255,.1), 0 6px 20px -4px var(--accent-glow)}
+  50%{box-shadow:0 0 0 1px rgba(255,255,255,.15), 0 6px 28px -2px var(--accent-glow)}
+}
+.brand-text{display:flex;flex-direction:column;line-height:1.1}
+.brand-text b{font-size:13px;font-weight:600;letter-spacing:.4px}
+.brand-text small{
+  font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--text-3);font-weight:500;
+}
 
-  /* waveform */
-  .wave{
-    position:absolute;left:0;right:0;bottom:0;height:80px;
-    display:flex;align-items:flex-end;justify-content:center;gap:3px;
-    padding:0 20px 12px;pointer-events:none;
-  }
-  .wave span{
-    display:block;width:3px;background:linear-gradient(180deg,var(--accent2),var(--accent));
-    border-radius:2px;height:6px;opacity:.85;transition:height .08s linear;
-  }
+.header-spacer{flex:1}
 
-  /* ---------- side ---------- */
-  .side{
-    grid-area:side;
-    display:flex;flex-direction:column;gap:14px;min-height:0;
-  }
-  .card{
-    background:var(--panel);
-    border:1px solid var(--stroke);
-    border-radius:16px;
-    backdrop-filter:blur(12px);
-    display:flex;flex-direction:column;min-height:0;
-  }
-  .card h3{
-    font-size:11px;letter-spacing:1.6px;text-transform:uppercase;
-    color:var(--muted);font-weight:500;
-    padding:14px 16px 10px;
-  }
-  .log{
-    flex:1;overflow-y:auto;padding:0 16px 16px;
-    font-size:13px;line-height:1.55;font-family:var(--mono);
-  }
-  .log::-webkit-scrollbar{width:6px}
-  .log::-webkit-scrollbar-thumb{background:var(--stroke);border-radius:3px}
-  .msg{margin-bottom:12px;display:flex;gap:8px;align-items:flex-start}
-  .msg .who{
-    font-size:10px;text-transform:uppercase;letter-spacing:1px;
-    min-width:46px;padding-top:3px;color:var(--muted)
-  }
-  .msg.user .who{color:var(--accent2)}
-  .msg.assistant .who{color:var(--accent)}
-  .msg.tool .who{color:var(--warn)}
-  .msg .body{
-    flex:1;background:rgba(255,255,255,0.02);
-    border:1px solid rgba(255,255,255,0.05);
-    border-radius:10px;padding:8px 10px;word-break:break-word;
-  }
-  .msg.user .body{border-color:rgba(34,211,238,0.25)}
-  .msg.assistant .body{border-color:rgba(124,58,237,0.3)}
-  .msg.tool .body{border-color:rgba(245,158,11,0.3);font-size:11px;color:var(--warn)}
+.status-cluster{display:flex;align-items:center;gap:var(--s-2);flex-wrap:nowrap}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 11px;border-radius:var(--r-pill);
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--stroke);
+  font-size:11px;font-family:var(--mono);
+  color:var(--text-2);
+  white-space:nowrap;
+  transition:all var(--t-base) var(--ease);
+  height:26px;
+}
+.chip:hover{background:rgba(255,255,255,.06);border-color:var(--stroke-2)}
+.chip .pip{
+  width:6px;height:6px;border-radius:50%;background:var(--text-3);
+  box-shadow:0 0 8px currentColor;
+}
+.chip.ok  {color:var(--ok);  border-color:rgba(34,197,94,.25);  background:rgba(34,197,94,.06)}
+.chip.ok   .pip{background:var(--ok)}
+.chip.warn{color:var(--warn);border-color:rgba(245,158,11,.25);background:rgba(245,158,11,.06)}
+.chip.warn .pip{background:var(--warn);animation:blink 1s steps(2) infinite}
+.chip.err {color:var(--err); border-color:rgba(239,68,68,.3);  background:rgba(239,68,68,.08)}
+.chip.err  .pip{background:var(--err)}
+.chip.info{color:var(--info);border-color:rgba(56,189,248,.25);background:rgba(56,189,248,.06)}
+@keyframes blink{50%{opacity:.25}}
 
-  /* input */
-  .inputrow{
-    display:flex;gap:8px;padding:12px;
-    border-top:1px solid rgba(255,255,255,0.05);
-  }
-  .inputrow input{
-    flex:1;background:rgba(0,0,0,0.35);
-    border:1px solid var(--stroke);color:var(--text);
-    border-radius:10px;padding:10px 12px;font-family:var(--font);font-size:13px;
-    outline:none;transition:border-color .15s;
-  }
-  .inputrow input:focus{border-color:var(--accent)}
-  .btn{
-    background:linear-gradient(135deg,var(--accent),#5B21B6);
-    border:none;color:white;border-radius:10px;
-    padding:10px 14px;font-weight:600;font-size:12px;cursor:pointer;
-    transition:transform .1s, box-shadow .15s;
-    box-shadow:0 4px 14px rgba(124,58,237,0.35);
-  }
-  .btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,58,237,0.5)}
-  .btn:active{transform:translateY(0)}
-  .btn.ghost{
-    background:transparent;border:1px solid var(--stroke);
-    color:var(--text);box-shadow:none;
-  }
-  .btn.ghost:hover{background:rgba(124,58,237,0.1)}
-  .btn.rec{background:linear-gradient(135deg,var(--err),#B91C1C);box-shadow:0 4px 14px rgba(239,68,68,0.4)}
+.icon-btn{
+  width:34px;height:34px;
+  border-radius:var(--r-sm);
+  display:grid;place-items:center;
+  background:transparent;
+  border:1px solid transparent;
+  color:var(--text-2);
+  transition:all var(--t-base) var(--ease);
+}
+.icon-btn:hover{
+  background:rgba(255,255,255,.05);
+  border-color:var(--stroke);
+  color:var(--text);
+  transform:translateY(-1px);
+}
+.icon-btn:active{transform:translateY(0) scale(.95)}
+.icon-btn svg{width:16px;height:16px;stroke-width:2;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
 
-  /* ---------- footer ---------- */
-  footer{
-    grid-area:footer;
-    display:flex;align-items:center;gap:12px;
-    padding:0 18px;font-size:11px;font-family:var(--mono);
-    color:var(--muted);
-    background:var(--panel);border:1px solid var(--stroke);
-    border-radius:12px;backdrop-filter:blur(12px);
-  }
-  footer .sep{opacity:.3}
+/* ============================================================
+   STAGE (avatar area)
+   ============================================================ */
+.stage{
+  grid-area:stage;position:relative;
+  background:var(--glass);
+  border:1px solid var(--stroke);
+  border-radius:var(--r-lg);
+  overflow:hidden;
+  backdrop-filter:blur(20px) saturate(140%);
+  -webkit-backdrop-filter:blur(20px) saturate(140%);
+  box-shadow:var(--sh-lg);
+  isolation:isolate;
+}
+.stage::before{
+  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 100%, var(--accent-soft), transparent 70%),
+    radial-gradient(ellipse 40% 40% at 50% 0%, rgba(34,211,238,.05), transparent 70%);
+}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:2}
 
-  /* ---------- drawer ---------- */
-  .drawer{
-    position:fixed;top:0;right:0;bottom:0;width:420px;max-width:92vw;
-    background:var(--bg2);
-    border-left:1px solid var(--stroke);
-    transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);
-    z-index:50;display:flex;flex-direction:column;
-    box-shadow:-20px 0 60px rgba(0,0,0,0.6);
-  }
-  .drawer.open{transform:translateX(0)}
-  .drawer header{
-    background:transparent;border:none;border-bottom:1px solid var(--stroke);
-    border-radius:0;justify-content:space-between;padding:18px 22px;
-  }
-  .drawer .body{padding:20px 22px;overflow-y:auto;display:flex;flex-direction:column;gap:18px}
-  .field{display:flex;flex-direction:column;gap:6px}
-  .field label{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
-  .field input,.field select{
-    background:rgba(0,0,0,0.35);border:1px solid var(--stroke);
-    color:var(--text);border-radius:8px;padding:9px 11px;
-    font-family:var(--mono);font-size:12px;outline:none;
-  }
-  .field input:focus,.field select:focus{border-color:var(--accent)}
-  .field .hint{font-size:11px;color:var(--muted);line-height:1.4}
-  .toggle{display:flex;align-items:center;justify-content:space-between;
-    padding:10px 12px;background:rgba(255,255,255,0.02);
-    border:1px solid rgba(255,255,255,0.05);border-radius:10px}
-  .switch{position:relative;width:38px;height:22px;background:#333;border-radius:11px;cursor:pointer;transition:background .15s}
-  .switch::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .15s}
-  .switch.on{background:var(--accent)}
-  .switch.on::after{transform:translateX(16px)}
-  .drawer .actions{display:flex;gap:8px;margin-top:auto;padding:16px 22px;border-top:1px solid var(--stroke)}
+/* HUD overlays */
+.hud{position:absolute;inset:0;z-index:3;pointer-events:none;padding:var(--s-5);display:flex;flex-direction:column;justify-content:space-between}
+.hud-top,.hud-bottom{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--s-3)}
+.hud-bottom{align-items:flex-end}
+.panel-tag{
+  pointer-events:none;
+  padding:6px 12px;
+  background:rgba(5,6,10,.55);
+  border:1px solid var(--stroke);
+  border-radius:var(--r-sm);
+  font-family:var(--mono);font-size:10.5px;
+  color:var(--text-3);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  display:flex;align-items:center;gap:8px;
+  letter-spacing:.3px;
+}
+.panel-tag b{color:var(--accent-2);font-weight:500}
+.panel-tag .sep{opacity:.25}
 
-  /* scrollbar global */
-  ::-webkit-scrollbar{width:8px;height:8px}
-  ::-webkit-scrollbar-thumb{background:rgba(124,58,237,0.3);border-radius:4px}
+/* Corner brackets */
+.bracket{position:absolute;width:22px;height:22px;border-color:var(--accent);pointer-events:none;opacity:.5;z-index:4}
+.bracket.tl{top:12px;left:12px;border-top:1.5px solid;border-left:1.5px solid;border-top-left-radius:6px}
+.bracket.tr{top:12px;right:12px;border-top:1.5px solid;border-right:1.5px solid;border-top-right-radius:6px}
+.bracket.bl{bottom:12px;left:12px;border-bottom:1.5px solid;border-left:1.5px solid;border-bottom-left-radius:6px}
+.bracket.br{bottom:12px;right:12px;border-bottom:1.5px solid;border-right:1.5px solid;border-bottom-right-radius:6px}
+
+/* ============================================================
+   WAVEFORM
+   ============================================================ */
+.waveform{
+  position:absolute;left:0;right:0;bottom:0;height:120px;
+  z-index:3;pointer-events:none;
+  display:flex;align-items:flex-end;justify-content:center;
+  gap:4px;padding:0 var(--s-6) var(--s-5);
+  mask-image:linear-gradient(90deg,transparent,black 8%,black 92%,transparent);
+  -webkit-mask-image:linear-gradient(90deg,transparent,black 8%,black 92%,transparent);
+}
+.waveform .bar{
+  flex:1;max-width:6px;min-width:3px;
+  border-radius:3px 3px 1px 1px;
+  background:linear-gradient(180deg,var(--accent-2),var(--accent));
+  height:6px;opacity:.35;
+  transition:height 60ms linear, opacity var(--t-fast) linear;
+  box-shadow:0 0 12px -2px var(--accent-glow);
+  transform-origin:bottom center;
+}
+
+/* ============================================================
+   SIDE PANEL (conversation)
+   ============================================================ */
+.side{
+  grid-area:side;display:flex;flex-direction:column;min-height:0;
+  transition:opacity var(--t-base) var(--ease), transform var(--t-base) var(--ease);
+}
+.card{
+  flex:1;display:flex;flex-direction:column;min-height:0;
+  background:var(--glass);
+  border:1px solid var(--stroke);
+  border-radius:var(--r-lg);
+  backdrop-filter:blur(20px) saturate(140%);
+  -webkit-backdrop-filter:blur(20px) saturate(140%);
+  box-shadow:var(--sh-lg);
+  overflow:hidden;
+  position:relative;
+}
+.card::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--accent-glow),transparent);
+  opacity:.6;
+}
+.card-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:var(--s-4) var(--s-5) var(--s-3);
+  border-bottom:1px solid var(--stroke);
+}
+.card-head h3{
+  font-size:10.5px;letter-spacing:1.8px;text-transform:uppercase;
+  color:var(--text-3);font-weight:600;
+  display:flex;align-items:center;gap:8px;
+}
+.card-head h3::before{
+  content:"";width:6px;height:6px;border-radius:2px;
+  background:var(--accent);box-shadow:0 0 8px var(--accent-glow);
+}
+.card-tools{display:flex;gap:4px}
+
+/* Log */
+.log{
+  flex:1;overflow-y:auto;overflow-x:hidden;
+  padding:var(--s-4) var(--s-4) var(--s-2);
+  scroll-behavior:smooth;
+  font-size:13.5px;
+  display:flex;flex-direction:column;gap:var(--s-3);
+}
+.msg{
+  display:flex;gap:var(--s-3);align-items:flex-start;
+  animation:msg-in var(--t-slow) var(--ease-out) both;
+  max-width:100%;
+}
+@keyframes msg-in{
+  from{opacity:0;transform:translateY(8px) scale(.98)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.msg .avatar-mini{
+  flex-shrink:0;width:26px;height:26px;border-radius:8px;
+  display:grid;place-items:center;
+  font-size:10px;font-weight:700;
+  letter-spacing:.4px;
+  border:1px solid var(--stroke);
+  background:rgba(255,255,255,.03);
+  color:var(--text-3);
+  font-family:var(--mono);
+  text-transform:uppercase;
+}
+.msg.user .avatar-mini{background:linear-gradient(135deg,var(--accent-2),#0891b2);color:#001018;border-color:transparent}
+.msg.assistant .avatar-mini{background:linear-gradient(135deg,var(--accent),#4c1d95);color:white;border-color:transparent}
+.msg.tool .avatar-mini{background:rgba(245,158,11,.15);color:var(--warn);border-color:rgba(245,158,11,.3)}
+.msg.sys .avatar-mini{background:rgba(255,255,255,.05);color:var(--text-3)}
+
+.msg .bubble{
+  flex:1;min-width:0;
+  padding:10px 13px;
+  border-radius:12px;
+  background:rgba(255,255,255,.025);
+  border:1px solid var(--stroke);
+  word-break:break-word;
+  overflow-wrap:anywhere;
+  color:var(--text);
+  line-height:1.55;
+  position:relative;
+  transition:background var(--t-base) var(--ease), border-color var(--t-base) var(--ease);
+}
+.msg .bubble:hover{background:rgba(255,255,255,.04);border-color:var(--stroke-2)}
+.msg.user .bubble{
+  background:linear-gradient(180deg,rgba(34,211,238,.08),rgba(34,211,238,.04));
+  border-color:rgba(34,211,238,.22);
+}
+.msg.assistant .bubble{
+  background:linear-gradient(180deg,var(--accent-soft),rgba(124,58,237,.04));
+  border-color:rgba(124,58,237,.22);
+}
+.msg.tool .bubble{
+  font-family:var(--mono);font-size:11.5px;
+  color:var(--text-2);
+  background:rgba(245,158,11,.05);
+  border-color:rgba(245,158,11,.2);
+  padding:8px 11px;
+}
+.msg.tool .bubble::before{
+  content:"→ ";color:var(--warn);font-weight:700;
+}
+.msg .meta{
+  display:flex;justify-content:space-between;gap:12px;
+  font-size:10px;color:var(--text-4);
+  font-family:var(--mono);
+  margin-bottom:4px;
+  letter-spacing:.3px;
+}
+.msg .meta .who{font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:1px}
+.msg.user .meta .who{color:var(--accent-2)}
+.msg.assistant .meta .who{color:var(--accent-2)}
+.msg.tool .meta .who{color:var(--warn)}
+
+/* Typing indicator */
+.typing{display:inline-flex;gap:4px;align-items:center;padding:2px 0}
+.typing i{
+  width:6px;height:6px;border-radius:50%;background:var(--accent);
+  animation:type-bounce 1.2s infinite var(--ease);
+}
+.typing i:nth-child(2){animation-delay:.15s;background:var(--accent-2)}
+.typing i:nth-child(3){animation-delay:.3s}
+@keyframes type-bounce{
+  0%,80%,100%{transform:translateY(0);opacity:.4}
+  40%{transform:translateY(-5px);opacity:1}
+}
+
+/* Composer */
+.composer{
+  padding:var(--s-3);
+  border-top:1px solid var(--stroke);
+  background:rgba(0,0,0,.15);
+  display:flex;flex-direction:column;gap:var(--s-2);
+}
+.composer-input{
+  display:flex;gap:var(--s-2);align-items:stretch;
+  background:rgba(0,0,0,.35);
+  border:1px solid var(--stroke);
+  border-radius:var(--r-md);
+  padding:4px;
+  transition:all var(--t-base) var(--ease);
+}
+.composer-input:focus-within{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px var(--accent-soft);
+}
+.composer input{
+  flex:1;background:transparent;border:none;
+  padding:9px 12px;
+  font-size:13.5px;color:var(--text);
+  font-family:var(--font);
+}
+.composer input::placeholder{color:var(--text-4)}
+.composer-actions{display:flex;gap:4px}
+.btn-ic{
+  width:36px;height:36px;border-radius:10px;
+  display:grid;place-items:center;
+  color:var(--text-2);
+  transition:all var(--t-base) var(--ease);
+  position:relative;
+}
+.btn-ic:hover{background:rgba(255,255,255,.06);color:var(--text)}
+.btn-ic:active{transform:scale(.94)}
+.btn-ic svg{width:16px;height:16px;stroke-width:2;fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+.btn-ic.send{
+  background:linear-gradient(135deg,var(--accent),#5b21b6);
+  color:white;
+  box-shadow:0 4px 14px -4px var(--accent-glow);
+}
+.btn-ic.send:hover{
+  box-shadow:0 6px 22px -4px var(--accent-glow);
+  transform:translateY(-1px);
+}
+.btn-ic.rec{
+  background:linear-gradient(135deg,var(--err),#b91c1c);
+  color:white;
+  box-shadow:0 4px 14px -4px rgba(239,68,68,.6);
+  animation:rec-pulse 1.4s var(--ease) infinite;
+}
+@keyframes rec-pulse{
+  0%,100%{box-shadow:0 4px 14px -4px rgba(239,68,68,.6)}
+  50%{box-shadow:0 4px 26px 0 rgba(239,68,68,.85)}
+}
+.btn-ic.rec::after{
+  content:"";position:absolute;inset:-2px;border-radius:12px;
+  border:1px solid rgba(239,68,68,.6);
+  animation:rec-ring 1.4s var(--ease) infinite;
+}
+@keyframes rec-ring{
+  0%{transform:scale(1);opacity:.8}
+  100%{transform:scale(1.35);opacity:0}
+}
+.composer-hint{
+  display:flex;justify-content:space-between;
+  font-size:10px;color:var(--text-4);
+  font-family:var(--mono);padding:0 4px;
+  letter-spacing:.2px;
+}
+kbd{
+  display:inline-block;padding:1px 5px;
+  font-family:var(--mono);font-size:9.5px;
+  background:rgba(255,255,255,.06);
+  border:1px solid var(--stroke);
+  border-bottom-width:2px;
+  border-radius:4px;
+  color:var(--text-3);
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.footer{
+  grid-area:footer;
+  display:flex;align-items:center;gap:var(--s-3);
+  padding:0 var(--s-5);
+  background:var(--glass);
+  border:1px solid var(--stroke);
+  border-radius:var(--r-md);
+  backdrop-filter:blur(20px) saturate(140%);
+  -webkit-backdrop-filter:blur(20px) saturate(140%);
+  box-shadow:var(--sh-md);
+  font-size:11px;font-family:var(--mono);
+  color:var(--text-3);
+  overflow:hidden;
+}
+.footer .item{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.footer .item b{color:var(--text-2);font-weight:500}
+.footer .sep{opacity:.2}
+.footer .spacer{flex:1}
+.footer .marquee{
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  max-width:40ch;
+}
+.dot-live{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--ok);box-shadow:0 0 8px var(--ok);
+  animation:pulse-dot 2.4s var(--ease) infinite;
+}
+@keyframes pulse-dot{
+  0%,100%{opacity:1;transform:scale(1)}
+  50%{opacity:.4;transform:scale(.7)}
+}
+
+/* ============================================================
+   DRAWER (settings)
+   ============================================================ */
+.scrim{
+  position:fixed;inset:0;z-index:40;
+  background:rgba(0,0,0,.5);
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
+  opacity:0;pointer-events:none;
+  transition:opacity var(--t-base) var(--ease);
+}
+.scrim.on{opacity:1;pointer-events:auto}
+
+.drawer{
+  position:fixed;top:0;right:0;bottom:0;z-index:50;
+  width:min(460px,92vw);
+  background:linear-gradient(180deg,var(--bg-2),var(--bg-1));
+  border-left:1px solid var(--stroke-2);
+  box-shadow:-30px 0 80px -20px rgba(0,0,0,.7);
+  display:flex;flex-direction:column;
+  transform:translateX(102%);
+  transition:transform var(--t-slow) var(--ease-out);
+}
+.drawer.on{transform:translateX(0)}
+.drawer-head{
+  padding:var(--s-5) var(--s-6);
+  border-bottom:1px solid var(--stroke);
+  display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(180deg,var(--accent-soft),transparent);
+}
+.drawer-head h2{
+  font-size:14px;font-weight:600;letter-spacing:.3px;
+  display:flex;align-items:center;gap:10px;
+}
+.drawer-head h2::before{
+  content:"";width:8px;height:8px;border-radius:2px;
+  background:var(--accent);box-shadow:0 0 10px var(--accent-glow);
+}
+.drawer-body{
+  flex:1;overflow-y:auto;
+  padding:var(--s-5) var(--s-6);
+  display:flex;flex-direction:column;gap:var(--s-5);
+}
+.drawer-foot{
+  padding:var(--s-4) var(--s-6);
+  border-top:1px solid var(--stroke);
+  display:flex;gap:var(--s-3);
+  background:rgba(0,0,0,.2);
+}
+
+.field{display:flex;flex-direction:column;gap:var(--s-2)}
+.field > label{
+  font-size:10.5px;letter-spacing:1.6px;text-transform:uppercase;
+  color:var(--text-3);font-weight:600;
+}
+.field .hint{font-size:11px;color:var(--text-4);line-height:1.5}
+.field .hint b{color:var(--text-2)}
+
+.input,select.input{
+  width:100%;
+  background:rgba(0,0,0,.4);
+  border:1px solid var(--stroke);
+  color:var(--text);
+  border-radius:var(--r-sm);
+  padding:11px 13px;
+  font-family:var(--mono);font-size:12.5px;
+  transition:all var(--t-base) var(--ease);
+}
+.input:hover{border-color:var(--stroke-2)}
+.input:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px var(--accent-soft);
+  background:rgba(0,0,0,.55);
+}
+.input[type="color"]{
+  padding:4px;height:42px;cursor:pointer;
+}
+
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-3)}
+
+.switch-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;
+  background:rgba(255,255,255,.02);
+  border:1px solid var(--stroke);
+  border-radius:var(--r-sm);
+  transition:all var(--t-base) var(--ease);
+}
+.switch-row:hover{background:rgba(255,255,255,.04);border-color:var(--stroke-2)}
+.switch-row .label{display:flex;flex-direction:column;gap:2px}
+.switch-row .label span{font-size:13px;color:var(--text)}
+.switch-row .label small{font-size:10.5px;color:var(--text-4);font-family:var(--mono)}
+
+.switch{
+  position:relative;width:40px;height:22px;
+  background:rgba(255,255,255,.08);
+  border-radius:var(--r-pill);
+  transition:background var(--t-base) var(--ease);
+  flex-shrink:0;
+}
+.switch::after{
+  content:"";position:absolute;top:2px;left:2px;
+  width:18px;height:18px;border-radius:50%;
+  background:#fff;
+  box-shadow:0 2px 6px rgba(0,0,0,.4);
+  transition:transform var(--t-base) var(--ease-spring);
+}
+.switch.on{background:var(--accent);box-shadow:0 0 20px -4px var(--accent-glow)}
+.switch.on::after{transform:translateX(18px)}
+
+.theme-picker{display:flex;gap:var(--s-2)}
+.theme-chip{
+  flex:1;height:42px;border-radius:var(--r-sm);
+  border:1px solid var(--stroke);
+  position:relative;
+  transition:all var(--t-base) var(--ease);
+  overflow:hidden;
+}
+.theme-chip::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(135deg,var(--c1),var(--c2));
+  opacity:.85;
+}
+.theme-chip:hover{transform:translateY(-2px);border-color:var(--stroke-2)}
+.theme-chip[data-active="true"]{
+  border-color:white;
+  box-shadow:0 0 0 2px var(--accent-soft), 0 0 24px -4px var(--accent-glow);
+}
+.theme-chip[data-active="true"]::before{
+  content:"✓";position:absolute;inset:0;z-index:2;
+  display:grid;place-items:center;color:white;font-weight:700;
+  text-shadow:0 1px 4px rgba(0,0,0,.6);
+}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:11px 18px;
+  border-radius:var(--r-sm);
+  font-weight:600;font-size:13px;
+  letter-spacing:.2px;
+  transition:all var(--t-base) var(--ease);
+  white-space:nowrap;
+}
+.btn.primary{
+  background:linear-gradient(135deg,var(--accent),#5b21b6);
+  color:white;
+  box-shadow:0 6px 20px -6px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,.15);
+}
+.btn.primary:hover{transform:translateY(-1px);box-shadow:0 10px 28px -6px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,.2)}
+.btn.primary:active{transform:translateY(0) scale(.98)}
+.btn.ghost{
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--stroke);
+  color:var(--text-2);
+}
+.btn.ghost:hover{background:rgba(255,255,255,.07);color:var(--text);border-color:var(--stroke-2)}
+.btn.danger{color:var(--err);border-color:rgba(239,68,68,.3)}
+.btn.danger:hover{background:rgba(239,68,68,.1)}
+
+/* ============================================================
+   TOASTS
+   ============================================================ */
+.toasts{
+  position:fixed;bottom:var(--s-6);right:var(--s-6);
+  z-index:60;display:flex;flex-direction:column;gap:var(--s-3);
+  pointer-events:none;max-width:360px;
+}
+.toast{
+  pointer-events:auto;
+  padding:12px 16px;
+  border-radius:var(--r-md);
+  background:var(--glass-2);
+  border:1px solid var(--stroke-2);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  box-shadow:var(--sh-lg);
+  font-size:12.5px;
+  display:flex;align-items:flex-start;gap:10px;
+  animation:toast-in var(--t-slow) var(--ease-out) both;
+  border-left:3px solid var(--accent);
+  max-width:100%;
+}
+.toast.ok{border-left-color:var(--ok)}
+.toast.warn{border-left-color:var(--warn)}
+.toast.err{border-left-color:var(--err)}
+.toast.out{animation:toast-out var(--t-base) var(--ease) forwards}
+.toast .t-icon{
+  width:16px;height:16px;flex-shrink:0;margin-top:1px;
+  stroke-width:2.4;fill:none;stroke:currentColor;
+}
+.toast .t-body{flex:1;min-width:0}
+.toast .t-body b{display:block;margin-bottom:2px;font-size:12px;letter-spacing:.2px}
+.toast .t-body span{color:var(--text-3);font-size:11.5px;line-height:1.45;word-break:break-word}
+@keyframes toast-in{
+  from{opacity:0;transform:translateX(20px) scale(.96)}
+  to{opacity:1;transform:translateX(0) scale(1)}
+}
+@keyframes toast-out{
+  to{opacity:0;transform:translateX(20px) scale(.96)}
+}
+
+/* ============================================================
+   COMMAND PALETTE
+   ============================================================ */
+.palette{
+  position:fixed;inset:0;z-index:70;
+  display:grid;place-items:start center;
+  padding-top:14vh;
+  background:rgba(0,0,0,.55);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+  opacity:0;pointer-events:none;
+  transition:opacity var(--t-base) var(--ease);
+}
+.palette.on{opacity:1;pointer-events:auto}
+.palette-inner{
+  width:min(620px,92vw);
+  background:linear-gradient(180deg,var(--bg-2),var(--bg-1));
+  border:1px solid var(--stroke-2);
+  border-radius:var(--r-lg);
+  box-shadow:0 40px 100px -20px rgba(0,0,0,.8);
+  overflow:hidden;
+  transform:translateY(-12px) scale(.98);
+  transition:transform var(--t-slow) var(--ease-out);
+}
+.palette.on .palette-inner{transform:translateY(0) scale(1)}
+.palette-input{
+  display:flex;align-items:center;gap:12px;
+  padding:16px 18px;
+  border-bottom:1px solid var(--stroke);
+}
+.palette-input svg{width:18px;height:18px;stroke:var(--text-3);fill:none;stroke-width:2}
+.palette-input input{
+  flex:1;background:transparent;border:none;
+  font-size:15px;color:var(--text);
+  font-family:var(--font);
+}
+.palette-input input::placeholder{color:var(--text-4)}
+.palette-list{
+  max-height:50vh;overflow-y:auto;
+  padding:6px;
+}
+.palette-item{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 14px;
+  border-radius:var(--r-sm);
+  cursor:pointer;
+  transition:background var(--t-fast) var(--ease);
+  color:var(--text-2);
+}
+.palette-item:hover,.palette-item.active{
+  background:var(--accent-soft);
+  color:var(--text);
+}
+.palette-item.active{
+  box-shadow:inset 2px 0 0 var(--accent);
+}
+.palette-item .pi-icon{
+  width:28px;height:28px;border-radius:var(--r-xs);
+  display:grid;place-items:center;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--stroke);
+  flex-shrink:0;
+}
+.palette-item .pi-icon svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+.palette-item .pi-text{flex:1;min-width:0}
+.palette-item .pi-text b{font-size:13px;font-weight:500;display:block;color:var(--text)}
+.palette-item .pi-text small{font-size:10.5px;color:var(--text-4);font-family:var(--mono)}
+.palette-item kbd{margin-left:auto}
+
+/* ============================================================
+   MISC
+   ============================================================ */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+[hidden]{display:none !important}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+  }
+}
 </style>
 </head>
 <body>
-<div class="app">
 
-  <!-- HEADER -->
-  <header>
+<!-- ambient -->
+<div class="bg-canvas"></div>
+<canvas id="particles"></canvas>
+
+<!-- app -->
+<div class="app" id="app">
+
+  <!-- ==================== HEADER ==================== -->
+  <header class="header" role="banner">
     <div class="brand">
-      <span class="dot"></span>
-      <span>MARK LV</span>
-      <small>prototype</small>
+      <div class="brand-mark" aria-hidden="true"></div>
+      <div class="brand-text">
+        <b>MARK LV</b>
+        <small>advanced hud</small>
+      </div>
     </div>
-    <div class="status">
-      <span class="chip" id="chip-provider">groq · llama-3.3-70b</span>
-      <span class="chip" id="chip-status">idle</span>
-      <span class="chip ok" id="chip-net">● online</span>
-      <button class="btn ghost" id="openSettings" style="padding:6px 12px;font-size:11px">⚙ Settings</button>
+
+    <div class="header-spacer"></div>
+
+    <div class="status-cluster" role="status">
+      <span class="chip info" id="chip-provider" title="Active provider">
+        <span class="pip"></span><span id="chip-provider-text">groq · llama-3.3-70b</span>
+      </span>
+      <span class="chip" id="chip-status" title="Assistant state">
+        <span class="pip"></span><span id="chip-status-text">idle</span>
+      </span>
+      <span class="chip ok" id="chip-net" title="Network">
+        <span class="pip"></span><span>online</span>
+      </span>
     </div>
+
+    <button class="icon-btn" id="btn-palette" title="Command palette (Ctrl/Cmd + K)" aria-label="Open command palette">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    </button>
+    <button class="icon-btn" id="btn-theme" title="Cycle theme" aria-label="Cycle theme">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+    <button class="icon-btn" id="btn-toggle-side" title="Toggle panel (Ctrl/Cmd + \)" aria-label="Toggle side panel">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></svg>
+    </button>
+    <button class="icon-btn" id="btn-settings" title="Settings (Ctrl/Cmd + ,)" aria-label="Open settings">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3h0a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5h0a1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9v0a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </button>
   </header>
 
-  <!-- STAGE -->
-  <div class="stage">
+  <!-- ==================== STAGE ==================== -->
+  <section class="stage" aria-label="Avatar">
     <canvas id="avatar"></canvas>
-    <div class="overlay">
-      <div class="toprow">
-        <div class="badge">avatar · <b>live</b></div>
-        <div class="badge">fps · <b id="fps">60</b></div>
+
+    <span class="bracket tl"></span><span class="bracket tr"></span>
+    <span class="bracket bl"></span><span class="bracket br"></span>
+
+    <div class="hud">
+      <div class="hud-top">
+        <div class="panel-tag">avatar <span class="sep">·</span> <b>live</b> <span class="sep">·</span> <span id="tag-psm">state:idle</span></div>
+        <div class="panel-tag"><b id="fps">60</b> fps <span class="sep">·</span> <b id="lat">0</b>ms</div>
+      </div>
+      <div class="hud-bottom">
+        <div class="panel-tag">model <span class="sep">·</span> <b id="tag-model">llama-3.3-70b</b></div>
+        <div class="panel-tag">session <span class="sep">·</span> <b id="tag-session">00:00</b></div>
       </div>
     </div>
-    <div class="wave" id="wave"></div>
-  </div>
 
-  <!-- SIDE -->
-  <div class="side">
-    <div class="card" style="flex:1">
-      <h3>Conversation</h3>
-      <div class="log" id="log"></div>
-      <div class="inputrow">
-        <input id="userInput" placeholder="Type or press the mic…" autocomplete="off"/>
-        <button class="btn" id="sendBtn">Send</button>
-        <button class="btn ghost" id="micBtn" title="Push to talk">🎙</button>
+    <div class="waveform" id="waveform" aria-hidden="true"></div>
+  </section>
+
+  <!-- ==================== SIDE ==================== -->
+  <aside class="side" aria-label="Conversation">
+    <div class="card">
+      <div class="card-head">
+        <h3>Conversation</h3>
+        <div class="card-tools">
+          <button class="icon-btn" id="btn-clear" title="Clear log" aria-label="Clear log">
+            <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14"/></svg>
+          </button>
+          <button class="icon-btn" id="btn-copy" title="Copy transcript" aria-label="Copy transcript">
+            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="log" id="log" role="log" aria-live="polite"></div>
+
+      <div class="composer">
+        <div class="composer-input">
+          <input id="input" placeholder="Ask anything, or press the mic…" autocomplete="off" spellcheck="false" aria-label="Message"/>
+          <div class="composer-actions">
+            <button class="btn-ic" id="btn-mic" title="Push to talk (Space)" aria-label="Record">
+              <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 19v3"/></svg>
+            </button>
+            <button class="btn-ic send" id="btn-send" title="Send (Enter)" aria-label="Send">
+              <svg viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="composer-hint">
+          <span><kbd>Enter</kbd> send · <kbd>Space</kbd> talk · <kbd>⌘K</kbd> palette</span>
+          <span id="hint-state">ready</span>
+        </div>
       </div>
     </div>
-  </div>
+  </aside>
 
-  <!-- FOOTER -->
-  <footer>
-    <span>Mark LV · free-LLM edition</span>
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="footer" role="contentinfo">
+    <span class="item"><span class="dot-live"></span><b>live</b></span>
     <span class="sep">|</span>
-    <span>STT: <b id="sttLabel">web-speech</b></span>
+    <span class="item">STT <b id="foot-stt">web-speech</b></span>
     <span class="sep">|</span>
-    <span>TTS: <b id="ttsLabel">browser</b></span>
+    <span class="item">TTS <b id="foot-tts">browser</b></span>
     <span class="sep">|</span>
-    <span id="footerMsg">ready</span>
+    <span class="item">TOKENS <b id="foot-tokens">0</b></span>
+    <span class="spacer"></span>
+    <span class="item marquee" id="foot-msg">ready</span>
   </footer>
 </div>
 
-<!-- SETTINGS DRAWER -->
-<div class="drawer" id="drawer">
-  <header>
-    <div class="brand"><span class="dot"></span><span>Settings</span></div>
-    <button class="btn ghost" id="closeSettings" style="padding:6px 12px">✕</button>
-  </header>
-  <div class="body">
+<!-- ==================== SCRIM + DRAWER ==================== -->
+<div class="scrim" id="scrim"></div>
+
+<aside class="drawer" id="drawer" aria-label="Settings" aria-hidden="true">
+  <div class="drawer-head">
+    <h2>Settings</h2>
+    <button class="icon-btn" id="btn-close-drawer" aria-label="Close">
+      <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+
+  <div class="drawer-body">
     <div class="field">
-      <label>Provider</label>
-      <select id="cfg-provider">
-        <option value="groq">Groq (free)</option>
-        <option value="openrouter">OpenRouter (free models)</option>
-        <option value="cerebras">Cerebras (free)</option>
-        <option value="gemini">Google AI Studio (free tier)</option>
-        <option value="ollama">Ollama (local, no key)</option>
+      <label for="cfg-provider">Provider</label>
+      <select class="input" id="cfg-provider">
+        <option value="groq">Groq — free, ultra-fast</option>
+        <option value="openrouter">OpenRouter — free models</option>
+        <option value="cerebras">Cerebras — free, fast</option>
+        <option value="gemini">Google AI Studio — free tier</option>
+        <option value="ollama">Ollama — local, no key</option>
       </select>
     </div>
+
     <div class="field">
-      <label>Model</label>
-      <input id="cfg-model" placeholder="llama-3.3-70b-versatile"/>
+      <label for="cfg-model">Model</label>
+      <input class="input" id="cfg-model" placeholder="llama-3.3-70b-versatile"/>
     </div>
+
     <div class="field">
-      <label>API key</label>
-      <input id="cfg-key" type="password" placeholder="paste your free key"/>
-      <div class="hint">Stored only in this browser tab's localStorage. Get a free key at <b>console.groq.com/keys</b>.</div>
+      <label for="cfg-key">API key</label>
+      <input class="input" id="cfg-key" type="password" placeholder="paste your free key"/>
+      <div class="hint">Stored locally in <b>localStorage</b>. Get a free key at <b>console.groq.com/keys</b>.</div>
     </div>
+
     <div class="field">
-      <label>Assistant name</label>
-      <input id="cfg-name" value="Mark"/>
+      <label for="cfg-name">Assistant name</label>
+      <input class="input" id="cfg-name" value="Mark"/>
     </div>
+
     <div class="field">
-      <label>Accent colour</label>
-      <input id="cfg-colour" type="color" value="#7C3AED"/>
+      <label>Theme</label>
+      <div class="theme-picker" id="theme-picker">
+        <button class="theme-chip" data-theme="violet" style="--c1:#7c3aed;--c2:#22d3ee" data-active="true" aria-label="Violet theme"></button>
+        <button class="theme-chip" data-theme="cyan"   style="--c1:#06b6d4;--c2:#a78bfa" aria-label="Cyan theme"></button>
+        <button class="theme-chip" data-theme="emerald" style="--c1:#10b981;--c2:#f472b6" aria-label="Emerald theme"></button>
+        <button class="theme-chip" data-theme="amber"  style="--c1:#f59e0b;--c2:#ec4899" aria-label="Amber theme"></button>
+      </div>
     </div>
-    <div class="toggle">
-      <span style="font-size:13px">Voice output (TTS)</span>
-      <div class="switch on" id="cfg-tts"></div>
-    </div>
-    <div class="toggle">
-      <span style="font-size:13px">Proactive check-ins</span>
-      <div class="switch" id="cfg-proactive"></div>
-    </div>
-    <div class="toggle">
-      <span style="font-size:13px">Wake word ("Hey Mark")</span>
-      <div class="switch" id="cfg-wake"></div>
+
+    <div class="field">
+      <label>Behaviour</label>
+      <div class="switch-row">
+        <div class="label"><span>Voice output</span><small>speak replies via TTS</small></div>
+        <div class="switch on" data-toggle="tts" role="switch" tabindex="0"></div>
+      </div>
+      <div class="switch-row" style="margin-top:8px">
+        <div class="label"><span>Proactive check-ins</span><small>time/context-aware nudges</small></div>
+        <div class="switch" data-toggle="proactive" role="switch" tabindex="0"></div>
+      </div>
+      <div class="switch-row" style="margin-top:8px">
+        <div class="label"><span>Wake word</span><small>"Hey Mark" — offline only in desktop build</small></div>
+        <div class="switch" data-toggle="wake" role="switch" tabindex="0"></div>
+      </div>
+      <div class="switch-row" style="margin-top:8px">
+        <div class="label"><span>Ambient particles</span><small>decorative canvas field</small></div>
+        <div class="switch on" data-toggle="particles" role="switch" tabindex="0"></div>
+      </div>
     </div>
   </div>
-  <div class="actions">
-    <button class="btn" id="saveSettings" style="flex:1">Save</button>
-    <button class="btn ghost" id="resetSettings">Reset</button>
+
+  <div class="drawer-foot">
+    <button class="btn primary" id="btn-save" style="flex:1">Save changes</button>
+    <button class="btn ghost danger" id="btn-reset">Reset</button>
+  </div>
+</aside>
+
+<!-- ==================== COMMAND PALETTE ==================== -->
+<div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="Command palette">
+  <div class="palette-inner">
+    <div class="palette-input">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="palette-input" placeholder="Type a command…" autocomplete="off" spellcheck="false"/>
+    </div>
+    <div class="palette-list" id="palette-list"></div>
   </div>
 </div>
 
+<!-- ==================== TOASTS ==================== -->
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
 <script>
-/* =========================================================
-   Mark LV — prototype logic
-   ========================================================= */
+/* ================================================================
+   MARK LV — Advanced HUD
+   ================================================================ */
+'use strict';
 
-const $ = (id) => document.getElementById(id);
-
-/* ---------- config ---------- */
-const DEFAULTS = {
-  provider: 'groq',
-  model: 'llama-3.3-70b-versatile',
-  apiKey: '',
-  name: 'Mark',
-  colour: '#7C3AED',
-  tts: true,
-  proactive: false,
-  wake: false
+/* ----------------------- tiny helpers ----------------------- */
+const $  = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const el = (tag, props = {}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === 'class') n.className = v;
+    else if (k === 'html') n.innerHTML = v;
+    else if (k.startsWith('on') && typeof v === 'function') n.addEventListener(k.slice(2), v);
+    else if (v != null) n.setAttribute(k, v);
+  }
+  for (const k of kids.flat()) if (k != null) n.append(k.nodeType ? k : document.createTextNode(k));
+  return n;
 };
-let cfg = Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem('marklv.cfg') || '{}'));
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const now   = () => performance.now();
 
+/* ----------------------- event bus ----------------------- */
+const bus = (() => {
+  const map = new Map();
+  return {
+    on(evt, fn){ (map.get(evt) || map.set(evt, new Set()).get(evt)).add(fn); return () => map.get(evt).delete(fn); },
+    emit(evt, data){ (map.get(evt) || []).forEach(fn => { try { fn(data); } catch (e) { console.error(e); } }); }
+  };
+})();
+
+/* ----------------------- toast system ----------------------- */
+const Toast = (() => {
+  const root = $('#toasts');
+  const ICONS = {
+    info: '<svg class="t-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>',
+    ok:   '<svg class="t-icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>',
+    warn: '<svg class="t-icon" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>',
+    err:  '<svg class="t-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>'
+  };
+  function show(kind, title, body, ttl = 4200){
+    const t = el('div', { class: `toast ${kind}` });
+    t.innerHTML = `${ICONS[kind] || ICONS.info}
+      <div class="t-body"><b>${title}</b>${body ? `<span>${body}</span>` : ''}</div>`;
+    root.append(t);
+    setTimeout(() => {
+      t.classList.add('out');
+      setTimeout(() => t.remove(), 300);
+    }, ttl);
+    return t;
+  }
+  return {
+    info: (t, b) => show('info', t, b),
+    ok:   (t, b) => show('ok',   t, b),
+    warn: (t, b) => show('warn', t, b),
+    err:  (t, b) => show('err',  t, b, 6000)
+  };
+})();
+
+/* ----------------------- state machine ----------------------- */
+const State = (() => {
+  const STATES = ['idle', 'listening', 'thinking', 'speaking', 'tool', 'error'];
+  let current = 'idle';
+  const chip = $('#chip-status');
+  const text = $('#chip-status-text');
+  const tag  = $('#tag-psm');
+  const hint = $('#hint-state');
+  const META = {
+    idle:      { cls: '',     label: 'idle',      hint: 'ready' },
+    listening: { cls: 'warn', label: 'listening', hint: 'listening…' },
+    thinking:  { cls: 'warn', label: 'thinking',  hint: 'thinking…' },
+    speaking:  { cls: 'info', label: 'speaking',  hint: 'speaking…' },
+    tool:      { cls: 'warn', label: 'tool',      hint: 'running tool…' },
+    error:     { cls: 'err',  label: 'error',     hint: 'error' }
+  };
+  function set(s){
+    if (!STATES.includes(s) || s === current) return;
+    const prev = current; current = s;
+    const m = META[s];
+    chip.className = `chip ${m.cls}`;
+    text.textContent = m.label;
+    tag.textContent = `state:${s}`;
+    hint.textContent = m.hint;
+    bus.emit('state', { from: prev, to: s });
+  }
+  return { set, get: () => current };
+})();
+
+/* ----------------------- config ----------------------- */
 const PROVIDER_META = {
-  groq:       { base:'https://api.groq.com/openai/v1',        model:'llama-3.3-70b-versatile',                    needsKey:true  },
-  openrouter: { base:'https://openrouter.ai/api/v1',          model:'meta-llama/llama-3.3-70b-instruct:free',    needsKey:true  },
-  cerebras:   { base:'https://api.cerebras.ai/v1',            model:'llama-3.3-70b',                             needsKey:true  },
-  gemini:     { base:'https://generativelanguage.googleapis.com/v1beta/openai', model:'gemini-2.0-flash',         needsKey:true  },
-  ollama:     { base:'http://localhost:11434/v1',             model:'llama3.2:3b',                                needsKey:false }
+  groq:       { base: 'https://api.groq.com/openai/v1',   model: 'llama-3.3-70b-versatile',                  needsKey: true,  label: 'Groq' },
+  openrouter: { base: 'https://openrouter.ai/api/v1',     model: 'meta-llama/llama-3.3-70b-instruct:free',    needsKey: true,  label: 'OpenRouter' },
+  cerebras:   { base: 'https://api.cerebras.ai/v1',       model: 'llama-3.3-70b',                             needsKey: true,  label: 'Cerebras' },
+  gemini:     { base: 'https://generativelanguage.googleapis.com/v1beta/openai', model: 'gemini-2.0-flash', needsKey: true,  label: 'Gemini' },
+  ollama:     { base: 'http://localhost:11434/v1',        model: 'llama3.2:3b',                                needsKey: false, label: 'Ollama' }
 };
+const DEFAULTS = {
+  provider: 'groq', model: 'llama-3.3-70b-versatile', apiKey: '',
+  name: 'Mark', theme: 'violet',
+  tts: true, proactive: false, wake: false, particles: true
+};
+const Config = (() => {
+  let c = { ...DEFAULTS, ...(JSON.parse(localStorage.getItem('marklv.cfg') || '{}')) };
+  return {
+    get: () => c,
+    set: (k, v) => { c[k] = v; persist(); apply(); },
+    patch: (p) => { Object.assign(c, p); persist(); apply(); },
+    reset: () => { c = { ...DEFAULTS }; persist(); apply(); },
+    save: () => persist()
+  };
+  function persist(){ localStorage.setItem('marklv.cfg', JSON.stringify(c)); }
+  function apply(){
+    document.documentElement.dataset.theme = c.theme;
+    $('#chip-provider-text').textContent = `${c.provider} · ${shortModel(c.model)}`;
+    $('#tag-model').textContent = shortModel(c.model);
+    $('#foot-tts').textContent = c.tts ? 'browser' : 'off';
+    bus.emit('config', c);
+  }
+})();
+function shortModel(m){ return m.length > 22 ? m.slice(0, 20) + '…' : m; }
 
-/* ---------- tool registry (mirrors actions/) ---------- */
+/* ----------------------- tools ----------------------- */
 const TOOLS = {
-  get_time:      { desc:'Return current local time',            handler: () => new Date().toLocaleString() },
-  get_date:      { desc:'Return today\'s date',                 handler: () => new Date().toDateString() },
-  system_info:   { desc:'Return browser/OS info',               handler: () => `${navigator.platform} · ${navigator.userAgent.split(') ')[0].split('(')[1]||'browser'}` },
-  open_url:      { desc:'Open a URL in a new tab',              handler: ({url}) => { window.open(url,'_blank'); return `opened ${url}`; } },
-  web_search:    { desc:'Search the web via DuckDuckGo',        handler: ({query}) => { window.open('https://duckduckgo.com/?q='+encodeURIComponent(query),'_blank'); return `searching "${query}"`; } },
-  copy_clipboard:{ desc:'Copy text to clipboard',               handler: async ({text}) => { await navigator.clipboard.writeText(text); return 'copied'; } },
-  clear_log:     { desc:'Clear the conversation log',           handler: () => { $('log').innerHTML=''; return 'log cleared'; } }
+  get_time:       { desc: 'Get the current local time',                 handler: () => new Date().toLocaleTimeString() },
+  get_date:       { desc: 'Get today\'s date',                          handler: () => new Date().toDateString() },
+  system_info:    { desc: 'Report browser and OS information',          handler: () => `${navigator.platform} · ${navigator.userAgent.slice(0, 80)}` },
+  open_url:       { desc: 'Open a URL in a new tab',  props: { url: { type: 'string', description: 'The URL to open' } },
+                    handler: ({ url }) => { window.open(url, '_blank', 'noopener'); return `opened ${url}`; } },
+  web_search:     { desc: 'Search the web via DuckDuckGo', props: { query: { type: 'string' } },
+                    handler: ({ query }) => { window.open('https://duckduckgo.com/?q=' + encodeURIComponent(query), '_blank', 'noopener'); return `searching "${query}"`; } },
+  copy_clipboard: { desc: 'Copy text to the clipboard', props: { text: { type: 'string' } },
+                    handler: async ({ text }) => { await navigator.clipboard.writeText(text); return 'copied ' + text.length + ' chars'; } },
+  clear_log:      { desc: 'Clear the conversation log',                 handler: () => { Log.clear(); return 'log cleared'; } },
+  notify:         { desc: 'Show a system notification',  props: { title: { type: 'string' }, body: { type: 'string' } },
+                    handler: async ({ title, body }) => {
+                      if (!('Notification' in window)) return 'notifications unsupported';
+                      if (Notification.permission !== 'granted') await Notification.requestPermission();
+                      new Notification(title, { body });
+                      return 'notified';
+                    } }
 };
-
 const TOOL_SPEC = Object.entries(TOOLS).map(([name, t]) => ({
-  type:'function',
-  function:{
+  type: 'function',
+  function: {
     name,
     description: t.desc,
-    parameters:{ type:'object', properties:{}, additionalProperties:true }
+    parameters: { type: 'object', properties: t.props || {}, required: t.props ? Object.keys(t.props) : [] }
   }
 }));
 
-/* ---------- state ---------- */
-let messages = [
-  { role:'system', content:
-    `You are ${cfg.name}, a concise, friendly voice assistant running in a browser prototype of Mark LV.
-     Keep replies under 3 sentences unless asked for detail.
-     When a tool would help, call it. Otherwise answer directly.`
-  }
-];
-let busy = false;
+/* ----------------------- LLM client ----------------------- */
+const LLM = (() => {
+  const cooldowns = new Map();
+  async function chat(messages, { tools } = {}){
+    const cfg = Config.get();
+    const order = [cfg.provider, ...Object.keys(PROVIDER_META).filter(p => p !== cfg.provider)];
+    let lastErr;
+    for (const p of order){
+      if ((cooldowns.get(p) || 0) > Date.now()) continue;
+      const meta = PROVIDER_META[p];
+      const key = p === cfg.provider ? cfg.apiKey : (localStorage.getItem('marklv.key.' + p) || '');
+      if (meta.needsKey && !key) continue;
+      try {
+        const body = {
+          model: p === cfg.provider ? cfg.model : meta.model,
+          messages, temperature: 0.7, max_tokens: 512
+        };
+        if (tools){ body.tools = tools; body.tool_choice = 'auto'; }
+        const headers = { 'Content-Type': 'application/json' };
+        if (meta.needsKey) headers.Authorization = 'Bearer ' + key;
+        if (p === 'openrouter'){ headers['HTTP-Referer'] = location.origin; headers['X-Title'] = 'Mark LV HUD'; }
 
-/* ---------- UI helpers ---------- */
-function log(who, text){
-  const el = document.createElement('div');
-  el.className = 'msg ' + who;
-  el.innerHTML = `<div class="who">${who}</div><div class="body"></div>`;
-  el.querySelector('.body').textContent = text;
-  $('log').appendChild(el);
-  $('log').scrollTop = $('log').scrollHeight;
-}
-function setStatus(s, kind){
-  const c = $('chip-status');
-  c.textContent = s;
-  c.className = 'chip ' + (kind || '');
-}
-function setFooter(s){ $('footerMsg').textContent = s; }
-function setProviderChip(){
-  $('chip-provider').textContent = `${cfg.provider} · ${cfg.model}`;
-}
-
-/* ---------- LLM call with provider fallback ---------- */
-async function llmChat(msgs, { tools } = {}){
-  const order = [cfg.provider, ...Object.keys(PROVIDER_META).filter(p => p !== cfg.provider)];
-  let lastErr;
-  for (const p of order){
-    const meta = PROVIDER_META[p];
-    const key = (p === cfg.provider ? cfg.apiKey : (localStorage.getItem('marklv.key.'+p) || ''));
-    if (meta.needsKey && !key) continue;
-    try {
-      const body = {
-        model: p === cfg.provider ? cfg.model : meta.model,
-        messages: msgs,
-        temperature: 0.7,
-        max_tokens: 512
-      };
-      if (tools){ body.tools = tools; body.tool_choice = 'auto'; }
-      const headers = { 'Content-Type':'application/json' };
-      if (meta.needsKey) headers['Authorization'] = 'Bearer ' + key;
-      if (p === 'openrouter'){ headers['HTTP-Referer']='http://localhost'; headers['X-Title']='Mark LV Prototype'; }
-
-      setFooter(`calling ${p}…`);
-      const r = await fetch(meta.base + '/chat/completions', {
-        method:'POST', headers, body: JSON.stringify(body)
-      });
-      if (!r.ok) throw new Error(`${p} ${r.status}: ${await r.text()}`);
-      const data = await r.json();
-      setFooter(`ok · ${p}`);
-      return { provider:p, data };
-    } catch(e){
-      lastErr = e;
-      console.warn('provider failed', p, e);
-      setFooter(`${p} failed → trying next`);
+        const t0 = now();
+        const r = await fetch(meta.base + '/chat/completions', { method: 'POST', headers, body: JSON.stringify(body) });
+        if (!r.ok) throw new Error(`${p} ${r.status}: ${(await r.text()).slice(0, 140)}`);
+        const data = await r.json();
+        bus.emit('latency', Math.round(now() - t0));
+        if (data.usage) bus.emit('tokens', data.usage.total_tokens || 0);
+        return { provider: p, data };
+      } catch (e){
+        lastErr = e;
+        console.warn('[llm]', p, e.message);
+        cooldowns.set(p, Date.now() + 30_000);
+        bus.emit('provider-fallback', { provider: p, error: e.message });
+      }
     }
+    throw lastErr || new Error('No provider available — add a free key in Settings.');
   }
-  throw lastErr || new Error('no provider available — add a free key in Settings');
-}
-
-/* ---------- main turn ---------- */
-async function sendTurn(text){
-  if (busy) return;
-  busy = true;
-  setStatus('thinking', 'warn');
-  log('user', text);
-  messages.push({ role:'user', content:text });
-  updateWave(0.6);
-
-  try{
-    let { data } = await llmChat(messages, { tools: TOOL_SPEC });
+  async function turn(messages){
+    let { data, provider } = await chat(messages, { tools: TOOL_SPEC });
     let msg = data.choices[0].message;
-
-    // handle tool calls (max 4 iterations)
     let hops = 0;
     while (msg.tool_calls && hops < 4){
       hops++;
@@ -481,227 +1282,776 @@ async function sendTurn(text){
         let args = {};
         try { args = JSON.parse(call.function.arguments || '{}'); } catch {}
         const tool = TOOLS[name];
+        State.set('tool');
+        Log.tool(`→ ${name}(${Object.keys(args).length ? JSON.stringify(args) : ''})`);
         let result = 'unknown tool';
-        if (tool){
-          log('tool', `→ ${name}(${JSON.stringify(args)})`);
-          try { result = await tool.handler(args); }
-          catch(e){ result = 'error: ' + e.message; }
-          log('tool', `← ${result}`);
-        }
-        messages.push({ role:'tool', tool_call_id: call.id, content: String(result) });
+        try { result = tool ? await tool.handler(args) : 'unknown tool'; }
+        catch (e){ result = 'error: ' + e.message; }
+        Log.tool(`← ${result}`);
+        messages.push({ role: 'tool', tool_call_id: call.id, content: String(result) });
       }
-      const next = await llmChat(messages, { tools: TOOL_SPEC });
+      const next = await chat(messages, { tools: TOOL_SPEC });
       msg = next.data.choices[0].message;
+      provider = next.provider;
+    }
+    return { reply: (msg.content || '').trim() || '(no reply)', provider };
+  }
+  return { chat, turn };
+})();
+
+/* ----------------------- log UI ----------------------- */
+const Log = (() => {
+  const root = $('#log');
+  const transcript = [];
+  const ROLE_INITIAL = { user: 'U', assistant: 'M', tool: 'T', sys: 'S' };
+  const ROLE_NAME    = { user: 'You', assistant: 'Mark', tool: 'Tool', sys: 'System' };
+
+  function add(role, text, { meta } = {}){
+    const ts = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const m = el('div', { class: `msg ${role}` });
+    m.innerHTML = `
+      <div class="avatar-mini">${ROLE_INITIAL[role] || '·'}</div>
+      <div class="bubble">
+        <div class="meta"><span class="who">${ROLE_NAME[role] || role}</span><span>${ts}${meta ? ' · ' + meta : ''}</span></div>
+        <div class="body"></div>
+      </div>`;
+    m.querySelector('.body').textContent = text;
+    root.append(m);
+    root.scrollTop = root.scrollHeight;
+    transcript.push({ role, text, ts });
+    return m;
+  }
+  function typing(){
+    const m = el('div', { class: 'msg assistant' });
+    m.innerHTML = `
+      <div class="avatar-mini">M</div>
+      <div class="bubble">
+        <div class="meta"><span class="who">Mark</span><span>…</span></div>
+        <div class="body"><span class="typing"><i></i><i></i><i></i></span></div>
+      </div>`;
+    root.append(m);
+    root.scrollTop = root.scrollHeight;
+    return m;
+  }
+  function replace(node, role, text, opts){
+    node.remove();
+    return add(role, text, opts);
+  }
+  return {
+    user:      (t, o) => add('user', t, o),
+    assistant: (t, o) => add('assistant', t, o),
+    tool:      (t, o) => add('tool', t, o),
+    sys:       (t, o) => add('sys', t, o),
+    typing,
+    replace,
+    clear(){ root.innerHTML = ''; transcript.length = 0; },
+    transcript: () => transcript
+  };
+})();
+
+/* ----------------------- avatar canvas ----------------------- */
+const Avatar = (() => {
+  const cv = $('#avatar');
+  const ctx = cv.getContext('2d', { alpha: true });
+  let W = 0, H = 0, dpr = Math.min(devicePixelRatio || 1, 2);
+  let blinkT = 0, blinkPhase = 'idle', nextBlink = 2000 + Math.random() * 3000;
+  let mouth = 0.02, mouthTarget = 0.02;
+  let speaking = false, talkTimer = null, glowPulse = 0;
+
+  function resize(){
+    const r = cv.getBoundingClientRect();
+    W = r.width; H = r.height;
+    cv.width  = Math.round(W * dpr);
+    cv.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function startTalk(){
+    speaking = true;
+    if (talkTimer) clearInterval(talkTimer);
+    talkTimer = setInterval(() => { mouthTarget = 0.18 + Math.random() * 0.72; }, 85);
+  }
+  function stopTalk(){
+    speaking = false;
+    mouthTarget = 0.04;
+    if (talkTimer){ clearInterval(talkTimer); talkTimer = null; }
+  }
+
+  function draw(dt, t){
+    const acc  = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7c3aed';
+    const acc2 = getComputedStyle(document.documentElement).getPropertyValue('--accent-2').trim() || '#22d3ee';
+    ctx.clearRect(0, 0, W, H);
+
+    const cx = W / 2, cy = H / 2 - 8;
+    const R  = Math.min(W, H) * 0.27;
+
+    // halo
+    const halo = ctx.createRadialGradient(cx, cy, R * 0.15, cx, cy, R * 1.9);
+    halo.addColorStop(0, hexA(acc, 0.28));
+    halo.addColorStop(0.55, hexA(acc2, 0.06));
+    halo.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = halo;
+    ctx.fillRect(0, 0, W, H);
+
+    // rotating ring behind head
+    const ringR = R * 1.5;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(t * 0.15);
+    ctx.strokeStyle = hexA(acc, 0.14);
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 10]);
+    ctx.beginPath(); ctx.arc(0, 0, ringR, 0, Math.PI * 2); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+
+    // breathing & bob
+    const breathe = 1 + Math.sin(t * 1.35) * 0.012;
+    const bob     = Math.sin(t * 1.05) * 3.5;
+
+    ctx.save();
+    ctx.translate(cx, cy + bob);
+    ctx.scale(breathe, breathe);
+
+    // neck
+    ctx.fillStyle = 'rgba(255,255,255,0.045)';
+    ctx.beginPath();
+    ctx.ellipse(0, R * 0.95, R * 0.28, R * 0.18, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // skull
+    const skullGrad = ctx.createLinearGradient(0, -R, 0, R);
+    skullGrad.addColorStop(0,   'rgba(255,255,255,0.14)');
+    skullGrad.addColorStop(0.5, 'rgba(180,180,220,0.09)');
+    skullGrad.addColorStop(1,   'rgba(80,80,120,0.09)');
+    ctx.fillStyle = skullGrad;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, R * 0.78, R, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // outline
+    const outlineGrad = ctx.createLinearGradient(-R, -R, R, R);
+    outlineGrad.addColorStop(0, hexA(acc, 0.7));
+    outlineGrad.addColorStop(1, hexA(acc2, 0.7));
+    ctx.strokeStyle = outlineGrad;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, R * 0.78, R, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // eyes
+    const eyeY = -R * 0.15;
+    const eyeX = R * 0.30;
+    const blink = computeBlink(dt);
+    drawEye(-eyeX, eyeY, R * 0.11, blink, acc);
+    drawEye( eyeX, eyeY, R * 0.11, blink, acc);
+
+    // nose hint
+    ctx.strokeStyle = 'rgba(255,255,255,0.09)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, -R * 0.02);
+    ctx.lineTo(R * 0.05, R * 0.20);
+    ctx.lineTo(-R * 0.05, R * 0.20);
+    ctx.stroke();
+
+    // mouth
+    const target = speaking ? mouthTarget : 0.04 + Math.sin(t * 0.8) * 0.015;
+    mouth += (target - mouth) * 0.28;
+    const mw = R * 0.32;
+    const mh = R * 0.02 + mouth * R * 0.17;
+
+    // glow under mouth when speaking
+    if (mouth > 0.12){
+      glowPulse = Math.min(1, glowPulse + 0.08);
+      const mg = ctx.createRadialGradient(0, R * 0.42, 0, 0, R * 0.42, mw * 1.4);
+      mg.addColorStop(0, hexA(acc, 0.35));
+      mg.addColorStop(1, hexA(acc, 0));
+      ctx.fillStyle = mg;
+      ctx.beginPath();
+      ctx.ellipse(0, R * 0.42, mw * 1.4, mh * 2.4, 0, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      glowPulse = Math.max(0, glowPulse - 0.06);
     }
 
-    const reply = (msg.content || '').trim() || '(no reply)';
-    messages.push({ role:'assistant', content: reply });
-    log('assistant', reply);
-    speak(reply);
-  } catch(e){
-    log('tool', 'ERROR: ' + e.message);
-    setFooter('error — check key/provider in Settings');
-  } finally {
-    busy = false;
-    setStatus('idle', 'ok');
-    updateWave(0);
+    ctx.fillStyle = 'rgba(15,15,25,0.9)';
+    ctx.strokeStyle = acc;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.ellipse(0, R * 0.42, mw, mh, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // inner mouth glow
+    if (mouth > 0.15){
+      const mg2 = ctx.createRadialGradient(0, R * 0.42, 0, 0, R * 0.42, mw);
+      mg2.addColorStop(0, hexA(acc, 0.85));
+      mg2.addColorStop(1, hexA(acc, 0));
+      ctx.fillStyle = mg2;
+      ctx.beginPath();
+      ctx.ellipse(0, R * 0.42, mw * 0.9, mh * 0.9, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
   }
+
+  function computeBlink(dt){
+    nextBlink -= dt;
+    if (nextBlink <= 0 && blinkPhase === 'idle'){
+      blinkPhase = 'closing'; blinkT = 0; nextBlink = 2200 + Math.random() * 3600;
+    }
+    if (blinkPhase === 'closing'){
+      blinkT += dt / 90;
+      if (blinkT >= 1){ blinkT = 0; blinkPhase = 'opening'; }
+      return 1 - blinkT;
+    }
+    if (blinkPhase === 'opening'){
+      blinkT += dt / 120;
+      if (blinkT >= 1){ blinkT = 0; blinkPhase = 'idle'; }
+      return blinkT;
+    }
+    return 1;
+  }
+
+  function drawEye(x, y, r, blink, acc){
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(1, clamp(blink, 0.05, 1));
+    ctx.fillStyle = 'rgba(240,240,255,0.92)';
+    ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+    const ig = ctx.createRadialGradient(0, 0, 0, 0, 0, r);
+    ig.addColorStop(0, '#ffffff');
+    ig.addColorStop(0.45, acc);
+    ig.addColorStop(1, '#0a0a12');
+    ctx.fillStyle = ig;
+    ctx.beginPath(); ctx.arc(0, 0, r * 0.62, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#05050a';
+    ctx.beginPath(); ctx.arc(0, 0, r * 0.24, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    ctx.beginPath(); ctx.arc(-r * 0.2, -r * 0.26, r * 0.14, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  return { resize, draw, startTalk, stopTalk, get speaking(){ return speaking; } };
+})();
+
+/* color helpers */
+function hexA(hex, a){
+  hex = hex.replace('#', '');
+  if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+  const r = parseInt(hex.slice(0, 2), 16);
+  const g = parseInt(hex.slice(2, 4), 16);
+  const b = parseInt(hex.slice(4, 6), 16);
+  return `rgba(${r},${g},${b},${a})`;
 }
 
-/* ---------- TTS (browser) ---------- */
-function speak(text){
-  if (!cfg.tts || !('speechSynthesis' in window)) return;
-  const u = new SpeechSynthesisUtterance(text);
-  u.rate = 1.02; u.pitch = 0.95;
-  const voices = speechSynthesis.getVoices();
-  const pref = voices.find(v => /en-GB|en-US/i.test(v.lang) && /female|Aria|Samantha|Google/i.test(v.name)) || voices[0];
-  if (pref) u.voice = pref;
-  u.onstart = () => { setStatus('speaking','warn'); startWaveTalk(); };
-  u.onend   = () => { setStatus('idle','ok');       stopWaveTalk(); };
-  speechSynthesis.cancel();
-  speechSynthesis.speak(u);
-}
+/* ----------------------- waveform ----------------------- */
+const Waveform = (() => {
+  const root = $('#waveform');
+  const BARS = 72;
+  for (let i = 0; i < BARS; i++) root.append(el('span', { class: 'bar' }));
+  const bars = [...root.children];
+  let energy = 0, target = 0;
 
-/* ---------- STT (Web Speech API) ---------- */
-let recognizer = null;
-function setupSTT(){
+  function setTarget(v){ target = clamp(v, 0, 1); }
+  function tick(t){
+    energy += (target - energy) * 0.12;
+    const base = 5, maxH = root.clientHeight - 24;
+    for (let i = 0; i < BARS; i++){
+      const phase = (i / BARS) * Math.PI * 2;
+      const n1 = Math.sin(t * 6 + phase * 3) * 0.5 + 0.5;
+      const n2 = Math.sin(t * 11 + phase * 5) * 0.5 + 0.5;
+      const n3 = Math.sin(t * 2 + phase) * 0.4 + 0.6;
+      const h = base + (n1 * n2 * n3) * maxH * energy;
+      bars[i].style.height = h.toFixed(1) + 'px';
+      bars[i].style.opacity = (0.28 + energy * 0.72).toFixed(2);
+    }
+  }
+  return { setTarget, tick };
+})();
+
+/* ----------------------- particles ----------------------- */
+const Particles = (() => {
+  const cv = $('#particles');
+  const ctx = cv.getContext('2d');
+  let W = 0, H = 0, dpr = Math.min(devicePixelRatio || 1, 2);
+  let parts = [];
+  let enabled = true;
+
+  function resize(){
+    W = innerWidth; H = innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    cv.style.width = W + 'px'; cv.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const count = Math.min(80, Math.floor((W * H) / 22000));
+    parts = Array.from({ length: count }, () => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.15,
+      vy: (Math.random() - 0.5) * 0.15,
+      r: Math.random() * 1.4 + 0.3,
+      a: Math.random() * 0.4 + 0.1
+    }));
+  }
+  function draw(t){
+    if (!enabled) { ctx.clearRect(0, 0, W, H); return; }
+    const acc = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7c3aed';
+    ctx.clearRect(0, 0, W, H);
+    for (const p of parts){
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+      ctx.fillStyle = hexA(acc, p.a);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // link nearby
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i < parts.length; i++){
+      for (let j = i + 1; j < parts.length; j++){
+        const dx = parts[i].x - parts[j].x;
+        const dy = parts[i].y - parts[j].y;
+        const d2 = dx * dx + dy * dy;
+        if (d2 < 120 * 120){
+          ctx.strokeStyle = hexA(acc, 0.06 * (1 - Math.sqrt(d2) / 120));
+          ctx.beginPath();
+          ctx.moveTo(parts[i].x, parts[i].y);
+          ctx.lineTo(parts[j].x, parts[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+  }
+  return { resize, draw, setEnabled(v){ enabled = v; } };
+})();
+
+/* ----------------------- TTS ----------------------- */
+const TTS = (() => {
+  let voice = null;
+  function pickVoice(){
+    const vs = speechSynthesis.getVoices();
+    voice = vs.find(v => /^en/i.test(v.lang) && /Aria|Samantha|Google UK English Female|Google US English|Jenny/i.test(v.name))
+         || vs.find(v => /^en/i.test(v.lang))
+         || vs[0] || null;
+  }
+  speechSynthesis.onvoiceschanged = pickVoice;
+  pickVoice();
+
+  function speak(text){
+    if (!Config.get().tts || !('speechSynthesis' in window)) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 1.02; u.pitch = 0.95; u.volume = 0.95;
+    if (voice) u.voice = voice;
+    u.onstart = () => { State.set('speaking'); Avatar.startTalk(); Waveform.setTarget(0.75); };
+    u.onend   = () => { State.set('idle');     Avatar.stopTalk();  Waveform.setTarget(0); };
+    u.onerror = () => { State.set('idle');     Avatar.stopTalk();  Waveform.setTarget(0); };
+    speechSynthesis.speak(u);
+  }
+  return { speak, cancel: () => speechSynthesis.cancel() };
+})();
+
+/* ----------------------- STT ----------------------- */
+const STT = (() => {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR){ $('sttLabel').textContent = 'unavailable'; return; }
-  recognizer = new SR();
-  recognizer.lang = 'en-US';
-  recognizer.interimResults = true;
-  recognizer.continuous = false;
-  recognizer.onresult = (e) => {
+  if (!SR){
+    $('#foot-stt').textContent = 'unavailable';
+    return { supported: false, toggle: () => Toast.warn('Speech recognition unavailable', 'Use a Chromium-based browser.') };
+  }
+  const rec = new SR();
+  rec.lang = 'en-US';
+  rec.interimResults = true;
+  rec.continuous = false;
+
+  let listening = false, interimText = '';
+
+  rec.onresult = (e) => {
     let interim = '', final = '';
     for (let i = e.resultIndex; i < e.results.length; i++){
       const t = e.results[i][0].transcript;
       if (e.results[i].isFinal) final += t; else interim += t;
     }
-    if (interim) $('userInput').value = interim;
-    if (final){ $('userInput').value = final; sendTurn(final.trim()); }
+    if (interim) $('#input').value = interim;
+    interimText = interim;
+    if (final){
+      $('#input').value = '';
+      send(final.trim());
+    }
   };
-  recognizer.onend = () => { $('micBtn').classList.remove('rec'); setStatus('idle','ok'); };
-  recognizer.onerror = (e) => { console.warn('stt', e); setFooter('stt error: '+e.error); };
-  $('sttLabel').textContent = 'web-speech';
+  rec.onend = () => {
+    listening = false;
+    $('#btn-mic').classList.remove('rec');
+    Waveform.setTarget(0);
+    if (State.get() === 'listening') State.set('idle');
+  };
+  rec.onerror = (e) => {
+    listening = false;
+    $('#btn-mic').classList.remove('rec');
+    State.set('idle');
+    if (e.error !== 'aborted' && e.error !== 'no-speech') Toast.err('Speech error', e.error);
+  };
+
+  function toggle(){
+    if (listening){
+      rec.stop();
+    } else {
+      TTS.cancel();
+      try {
+        rec.start();
+        listening = true;
+        $('#btn-mic').classList.add('rec');
+        State.set('listening');
+        Waveform.setTarget(0.4);
+      } catch (e){ /* already started */ }
+    }
+  }
+  return { toggle, get listening(){ return listening; }, supported: true };
+})();
+
+/* ----------------------- conversation ----------------------- */
+let busy = false;
+const history = [];   // LLM messages
+
+function systemPrompt(){
+  const c = Config.get();
+  return `You are ${c.name}, a concise, friendly voice assistant running inside a browser-based HUD prototype called Mark LV.
+- Keep replies under 3 sentences unless asked for detail.
+- When a tool would help, call it. Otherwise answer directly.
+- Speak naturally — this text will be read aloud.
+- Never mention that you are an AI model unless asked.`;
 }
-function toggleMic(){
-  if (!recognizer) return;
-  if ($('micBtn').classList.contains('rec')){
-    recognizer.stop();
-  } else {
-    speechSynthesis.cancel();
-    $('micBtn').classList.add('rec');
-    setStatus('listening','warn');
-    try { recognizer.start(); } catch {}
+function refreshSystem(){
+  if (history[0]?.role === 'system') history[0].content = systemPrompt();
+  else history.unshift({ role: 'system', content: systemPrompt() });
+}
+
+async function send(text){
+  if (busy || !text) return;
+  busy = true;
+  State.set('thinking');
+  Log.user(text);
+  history.push({ role: 'user', content: text });
+
+  const t = Log.typing();
+  Waveform.setTarget(0.5);
+
+  try {
+    const { reply, provider } = await LLM.turn(history);
+    history.push({ role: 'assistant', content: reply });
+    Log.replace(t, 'assistant', reply, { meta: provider });
+    TTS.speak(reply);
+    Waveform.setTarget(0);
+  } catch (e){
+    t.remove();
+    Log.tool('ERROR: ' + e.message);
+    Toast.err('Request failed', e.message);
+    State.set('error');
+    setTimeout(() => State.set('idle'), 1500);
+  } finally {
+    busy = false;
+    if (State.get() === 'thinking') State.set('idle');
   }
 }
 
-/* ---------- avatar (canvas) ---------- */
-const cv = $('avatar');
-const ctx = cv.getContext('2d');
-let W = 0, H = 0, dpr = Math.min(devicePixelRatio||1, 2);
-function resize(){
-  const r = cv.getBoundingClientRect();
-  W = r.width; H = r.height;
-  cv.width = W * dpr; cv.height = H * dpr;
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-}
-window.addEventListener('resize', resize);
+/* ----------------------- footer / hud telemetry ----------------------- */
+let tokens = 0, sessionStart = Date.now();
+bus.on('tokens', n => { tokens += n; $('#foot-tokens').textContent = tokens.toLocaleString(); });
+bus.on('latency', ms => { $('#lat').textContent = ms; });
+bus.on('provider-fallback', ({ provider }) => Toast.warn(`${provider} unavailable`, 'Falling back to next provider…'));
+setInterval(() => {
+  const s = Math.floor((Date.now() - sessionStart) / 1000);
+  const mm = String(Math.floor(s / 60)).padStart(2, '0');
+  const ss = String(s % 60).padStart(2, '0');
+  $('#tag-session').textContent = `${mm}:${ss}`;
+}, 1000);
 
-let t0 = performance.now();
-let mouth = 0;        // 0..1
-let mouthTarget = 0;
-let talking = false;
-let talkTimer = null;
-
-function startWaveTalk(){
-  talking = true;
-  if (talkTimer) clearInterval(talkTimer);
-  talkTimer = setInterval(() => { mouthTarget = 0.2 + Math.random()*0.75; }, 90);
-}
-function stopWaveTalk(){
-  talking = false;
-  mouthTarget = 0;
-  if (talkTimer) clearInterval(talkTimer);
+/* ----------------------- theme cycle ----------------------- */
+const THEMES = ['violet', 'cyan', 'emerald', 'amber'];
+function applyTheme(theme){
+  Config.set('theme', theme);
+  $$('#theme-picker .theme-chip').forEach(b => {
+    b.dataset.active = String(b.dataset.theme === theme);
+  });
 }
 
-function drawAvatar(now){
-  const t = (now - t0) / 1000;
-  // background glow
-  ctx.clearRect(0,0,W,H);
-  const cx = W/2, cy = H/2 - 10;
-  const R = Math.min(W,H) * 0.28;
+/* ----------------------- command palette ----------------------- */
+const Palette = (() => {
+  const root = $('#palette');
+  const input = $('#palette-input');
+  const list = $('#palette-list');
+  const COMMANDS = [
+    { id: 'settings',  label: 'Open settings',            hint: 'configure provider, key, theme', icon: '<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3h0a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5h0a1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9v0a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>', run: () => openDrawer() },
+    { id: 'theme',     label: 'Cycle theme',              hint: 'violet → cyan → emerald → amber', icon: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>', run: () => { const i = THEMES.indexOf(Config.get().theme); applyTheme(THEMES[(i + 1) % THEMES.length]); Toast.ok('Theme changed', Config.get().theme); } },
+    { id: 'clear',     label: 'Clear conversation',       hint: 'wipe the log',                    icon: '<path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14"/>', run: () => { Log.clear(); Toast.ok('Log cleared'); } },
+    { id: 'copy',      label: 'Copy transcript',          hint: 'clipboard',                       icon: '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>', run: () => copyTranscript() },
+    { id: 'tts',       label: 'Toggle voice output',      hint: 'on / off',                        icon: '<path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/>', run: () => { Config.set('tts', !Config.get().tts); syncSwitches(); Toast.ok('Voice ' + (Config.get().tts ? 'on' : 'off')); } },
+    { id: 'particles', label: 'Toggle particles',         hint: 'ambient canvas',                  icon: '<circle cx="12" cy="12" r="1"/><circle cx="6" cy="6" r="1"/><circle cx="18" cy="6" r="1"/><circle cx="6" cy="18" r="1"/><circle cx="18" cy="18" r="1"/>', run: () => { Config.set('particles', !Config.get().particles); Particles.setEnabled(Config.get().particles); syncSwitches(); Toast.ok('Particles ' + (Config.get().particles ? 'on' : 'off')); } },
+    { id: 'side',      label: 'Toggle side panel',        hint: 'collapse / expand',               icon: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/>', run: () => toggleSide() },
+    { id: 'mic',       label: 'Start / stop mic',         hint: 'push to talk',                    icon: '<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 19v3"/>', run: () => STT.toggle() },
+    { id: 'search',    label: 'Web search…',              hint: 'opens DuckDuckGo',                icon: '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>', run: (q) => { window.open('https://duckduckgo.com/?q=' + encodeURIComponent(q || 'free llm apis'), '_blank'); } },
+    { id: 'github',    label: 'Open Groq console',        hint: 'get a free API key',              icon: '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6M10 14 21 3"/>', run: () => window.open('https://console.groq.com/keys', '_blank') },
+    { id: 'reset',     label: 'Reset all settings',       hint: 'back to defaults',                icon: '<path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-6.4 2.6L3 8"/><path d="M3 3v5h5"/>', run: () => resetAll() }
+  ];
 
-  // halo
-  const g = ctx.createRadialGradient(cx, cy, R*0.2, cx, cy, R*1.8);
-  g.addColorStop(0, 'rgba(124,58,237,0.35)');
-  g.addColorStop(0.6, 'rgba(34,211,238,0.08)');
-  g.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = g;
-  ctx.fillRect(0,0,W,H);
+  let items = COMMANDS.slice(), activeIdx = 0, filtered = items;
 
-  // breathing
-  const breathe = 1 + Math.sin(t*1.4)*0.012;
-  const bob = Math.sin(t*1.1)*4;
-
-  ctx.save();
-  ctx.translate(cx, cy + bob);
-  ctx.scale(breathe, breathe);
-
-  // neck
-  ctx.fillStyle = 'rgba(255,255,255,0.05)';
-  ctx.beginPath();
-  ctx.ellipse(0, R*0.95, R*0.28, R*0.18, 0, 0, Math.PI*2);
-  ctx.fill();
-
-  // skull
-  const skullGrad = ctx.createLinearGradient(0,-R,0,R);
-  skullGrad.addColorStop(0, 'rgba(255,255,255,0.14)');
-  skullGrad.addColorStop(0.5, 'rgba(180,180,220,0.10)');
-  skullGrad.addColorStop(1, 'rgba(80,80,120,0.10)');
-  ctx.fillStyle = skullGrad;
-  ctx.beginPath();
-  ctx.ellipse(0, 0, R*0.78, R, 0, 0, Math.PI*2);
-  ctx.fill();
-
-  // outline stroke
-  ctx.strokeStyle = cfg.colour + '99';
-  ctx.lineWidth = 1.4;
-  ctx.beginPath();
-  ctx.ellipse(0, 0, R*0.78, R, 0, 0, Math.PI*2);
-  ctx.stroke();
-
-  // eyes
-  const eyeY = -R*0.15;
-  const eyeX = R*0.30;
-  const blink = Math.sin(t*0.9) > 0.985 ? 0.1 : 1;
-  drawEye(-eyeX, eyeY, R*0.11, blink);
-  drawEye( eyeX, eyeY, R*0.11, blink);
-
-  // nose hint
-  ctx.strokeStyle = 'rgba(255,255,255,0.10)';
-  ctx.beginPath();
-  ctx.moveTo(0, -R*0.02);
-  ctx.lineTo(R*0.05, R*0.20);
-  ctx.lineTo(-R*0.05, R*0.20);
-  ctx.stroke();
-
-  // mouth — reacts to talking
-  const targetMouth = talking ? mouthTarget : 0.06 + Math.sin(t*0.8)*0.02;
-  mouth += (targetMouth - mouth) * 0.25;
-  const mw = R*0.32;
-  const mh = R*0.02 + mouth * R*0.16;
-  ctx.fillStyle = 'rgba(20,20,35,0.85)';
-  ctx.strokeStyle = cfg.colour;
-  ctx.lineWidth = 1.6;
-  ctx.beginPath();
-  ctx.ellipse(0, R*0.42, mw, mh, 0, 0, Math.PI*2);
-  ctx.fill();
-  ctx.stroke();
-
-  // inner glow for mouth when speaking
-  if (mouth > 0.15){
-    const mg = ctx.createRadialGradient(0, R*0.42, 0, 0, R*0.42, mw);
-    mg.addColorStop(0, cfg.colour + 'cc');
-    mg.addColorStop(1, cfg.colour + '00');
-    ctx.fillStyle = mg;
-    ctx.beginPath();
-    ctx.ellipse(0, R*0.42, mw, mh, 0, 0, Math.PI*2);
-    ctx.fill();
+  function render(q = ''){
+    const needle = q.toLowerCase().trim();
+    filtered = items.filter(c =>
+      c.label.toLowerCase().includes(needle) ||
+      c.hint.toLowerCase().includes(needle) ||
+      c.id.includes(needle)
+    );
+    if (!filtered.length){
+      list.innerHTML = `<div style="padding:24px 18px;text-align:center;color:var(--text-4);font-size:12px">no matching command</div>`;
+      return;
+    }
+    activeIdx = clamp(activeIdx, 0, filtered.length - 1);
+    list.innerHTML = '';
+    filtered.forEach((c, i) => {
+      const item = el('div', { class: 'palette-item' + (i === activeIdx ? ' active' : '') });
+      item.innerHTML = `
+        <div class="pi-icon"><svg viewBox="0 0 24 24">${c.icon}</svg></div>
+        <div class="pi-text"><b>${c.label}</b><small>${c.hint}</small></div>
+      `;
+      item.onclick = () => run(c);
+      item.onmouseenter = () => { activeIdx = i; refreshActive(); };
+      list.append(item);
+    });
   }
+  function refreshActive(){
+    $$('.palette-item', list).forEach((n, i) => n.classList.toggle('active', i === activeIdx));
+  }
+  function run(cmd, q){
+    close();
+    setTimeout(() => { try { cmd.run(q); } catch (e){ Toast.err('Command failed', e.message); } }, 120);
+  }
+  function open(){
+    root.classList.add('on');
+    input.value = '';
+    activeIdx = 0;
+    render('');
+    setTimeout(() => input.focus(), 60);
+  }
+  function close(){ root.classList.remove('on'); input.blur(); }
+  function isOpen(){ return root.classList.contains('on'); }
 
-  ctx.restore();
+  input.addEventListener('input', e => { activeIdx = 0; render(e.target.value); });
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Escape'){ e.preventDefault(); close(); }
+    else if (e.key === 'ArrowDown'){ e.preventDefault(); activeIdx = Math.min(activeIdx + 1, filtered.length - 1); refreshActive(); scrollActive(); }
+    else if (e.key === 'ArrowUp'){ e.preventDefault(); activeIdx = Math.max(activeIdx - 1, 0); refreshActive(); scrollActive(); }
+    else if (e.key === 'Enter'){ e.preventDefault(); if (filtered[activeIdx]) run(filtered[activeIdx], input.value); }
+  });
+  function scrollActive(){
+    const n = $$('.palette-item', list)[activeIdx];
+    if (n) n.scrollIntoView({ block: 'nearest' });
+  }
+  root.addEventListener('mousedown', e => { if (e.target === root) close(); });
+
+  return { open, close, isOpen };
+})();
+
+/* ----------------------- drawer ----------------------- */
+const Drawer = (() => {
+  const root = $('#drawer');
+  const scrim = $('#scrim');
+  function open(){
+    root.classList.add('on'); root.setAttribute('aria-hidden', 'false');
+    scrim.classList.add('on');
+    loadIntoForm();
+  }
+  function close(){
+    root.classList.remove('on'); root.setAttribute('aria-hidden', 'true');
+    scrim.classList.remove('on');
+  }
+  function isOpen(){ return root.classList.contains('on'); }
+  return { open, close, isOpen };
+})();
+function openDrawer(){ Drawer.open(); }
+
+/* load current config into form */
+function loadIntoForm(){
+  const c = Config.get();
+  $('#cfg-provider').value = c.provider;
+  $('#cfg-model').value    = c.model;
+  $('#cfg-key').value      = c.apiKey || '';
+  $('#cfg-name').value     = c.name;
+  $$('#theme-picker .theme-chip').forEach(b => b.dataset.active = String(b.dataset.theme === c.theme));
+  syncSwitches();
+}
+function syncSwitches(){
+  const c = Config.get();
+  $$('.switch[data-toggle]').forEach(s => {
+    s.classList.toggle('on', !!c[s.dataset.toggle]);
+  });
 }
 
-function drawEye(x, y, r, blink){
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.scale(1, blink);
-  // sclera
-  ctx.fillStyle = 'rgba(240,240,255,0.9)';
-  ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.fill();
-  // iris
-  const ig = ctx.createRadialGradient(0,0,0,0,0,r);
-  ig.addColorStop(0, '#fff');
-  ig.addColorStop(0.4, cfg.colour);
-  ig.addColorStop(1, '#0a0a12');
-  ctx.fillStyle = ig;
-  ctx.beginPath(); ctx.arc(0,0,r*0.62,0,Math.PI*2); ctx.fill();
-  // pupil
-  ctx.fillStyle = '#05050a';
-  ctx.beginPath(); ctx.arc(0,0,r*0.24,0,Math.PI*2); ctx.fill();
-  // highlight
-  ctx.fillStyle = 'rgba(255,255,255,0.9)';
-  ctx.beginPath(); ctx.arc(-r*0.2, -r*0.25, r*0.14, 0, Math.PI*2); ctx.fill();
-  ctx.restore();
+/* ----------------------- side collapse ----------------------- */
+function toggleSide(){
+  const app = $('#app');
+  app.classList.toggle('side-collapsed');
 }
 
-/* ---------- waveform ---------- */
-const waveEl = $('wave');
-const BARS = 64;
-for (let i=0;i<BARS;i++){
-  const s = document.createElement('span');
-  waveEl.appendChild(s);
+/* ----------------------- copy transcript ----------------------- */
+async function copyTranscript(){
+  const t = Log.transcript();
+  if (!t.length){ Toast.warn('Nothing to copy'); return; }
+  const text = t.map(m => `[${m.ts}] ${m.role}: ${m.text}`).join('\n');
+  try { await navigator.clipboard.writeText(text); Toast.ok('Copied', `${t.length} messages`); }
+  catch { Toast.err('Copy failed'); }
 }
-const bars = [...waveEl.children];
-let waveEnergy = 0
+
+/* ----------------------- reset ----------------------- */
+function resetAll(){
+  Config.reset();
+  applyTheme(DEFAULTS.theme);
+  Particles.setEnabled(DEFAULTS.particles);
+  loadIntoForm();
+  Toast.ok('Reset complete');
+}
+
+/* ----------------------- header actions ----------------------- */
+$('#btn-palette').onclick   = () => Palette.open();
+$('#btn-settings').onclick  = () => Drawer.open();
+$('#btn-theme').onclick     = () => {
+  const i = THEMES.indexOf(Config.get().theme);
+  const next = THEMES[(i + 1) % THEMES.length];
+  applyTheme(next);
+  Toast.ok('Theme', next);
+};
+$('#btn-toggle-side').onclick = () => toggleSide();
+$('#btn-close-drawer').onclick = () => Drawer.close();
+$('#scrim').onclick = () => Drawer.close();
+
+/* theme picker */
+$$('#theme-picker .theme-chip').forEach(b => {
+  b.onclick = () => applyTheme(b.dataset.theme);
+});
+
+/* drawer form inputs */
+$('#cfg-provider').onchange = (e) => {
+  $('#cfg-model').value = PROVIDER_META[e.target.value].model;
+};
+$$('.switch[data-toggle]').forEach(s => {
+  const handler = () => {
+    s.classList.toggle('on');
+  };
+  s.onclick = handler;
+  s.onkeydown = (e) => { if (e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); handler(); } };
+});
+$('#btn-save').onclick = () => {
+  const c = {
+    provider: $('#cfg-provider').value,
+    model:    $('#cfg-model').value.trim() || PROVIDER_META[$('#cfg-provider').value].model,
+    apiKey:   $('#cfg-key').value.trim(),
+    name:     $('#cfg-name').value.trim() || 'Mark',
+    theme:    $$('#theme-picker .theme-chip').find(b => b.dataset.active === 'true')?.dataset.theme || 'violet',
+    tts:        $('.switch[data-toggle="tts"]').classList.contains('on'),
+    proactive:  $('.switch[data-toggle="proactive"]').classList.contains('on'),
+    wake:       $('.switch[data-toggle="wake"]').classList.contains('on'),
+    particles:  $('.switch[data-toggle="particles"]').classList.contains('on')
+  };
+  Config.patch(c);
+  Particles.setEnabled(c.particles);
+  applyTheme(c.theme);
+  refreshSystem();
+  localStorage.setItem('marklv.key.' + c.provider, c.apiKey);
+  Toast.ok('Saved', `${c.provider} · ${c.model}`);
+  Drawer.close();
+};
+$('#btn-reset').onclick = () => resetAll();
+
+/* card actions */
+$('#btn-clear').onclick = () => { Log.clear(); Toast.ok('Log cleared'); };
+$('#btn-copy').onclick  = () => copyTranscript();
+
+/* composer */
+$('#btn-send').onclick = () => {
+  const v = $('#input').value.trim();
+  if (!v) return;
+  $('#input').value = '';
+  send(v);
+};
+$('#input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); $('#btn-send').click(); }
+});
+$('#btn-mic').onclick = () => STT.toggle();
+
+/* ----------------------- keyboard shortcuts ----------------------- */
+window.addEventListener('keydown', e => {
+  const mod = e.metaKey || e.ctrlKey;
+  const tag = (e.target.tagName || '').toLowerCase();
+  const typing = tag === 'input' || tag === 'textarea' || e.target.isContentEditable;
+
+  // Cmd/Ctrl+K → palette
+  if (mod && e.key.toLowerCase() === 'k'){ e.preventDefault(); Palette.open(); return; }
+  // Cmd/Ctrl+, → settings
+  if (mod && e.key === ','){ e.preventDefault(); Drawer.open(); return; }
+  // Cmd/Ctrl+\ → toggle side
+  if (mod && e.key === '\\'){ e.preventDefault(); toggleSide(); return; }
+  // Esc → close overlays
+  if (e.key === 'Escape'){
+    if (Palette.isOpen()) return;
+    if (Drawer.isOpen()) Drawer.close();
+    return;
+  }
+  // Space → mic (only when not typing)
+  if (e.code === 'Space' && !typing && !mod){
+    e.preventDefault();
+    STT.toggle();
+  }
+  // / → focus input (only when not typing)
+  if (e.key === '/' && !typing && !mod){
+    e.preventDefault();
+    $('#input').focus();
+  }
+});
+
+/* ----------------------- main render loop ----------------------- */
+let last = now(), frames = 0, fpsT = last;
+function loop(t){
+  const dt = t - last; last = t;
+  const sec = t / 1000;
+
+  Avatar.draw(dt, sec);
+  Waveform.tick(sec);
+  Particles.draw(sec);
+
+  frames++;
+  if (t - fpsT > 500){
+    $('#fps').textContent = Math.round(frames * 1000 / (t - fpsT));
+    frames = 0; fpsT = t;
+  }
+  requestAnimationFrame(loop);
+}
+
+/* ----------------------- boot ----------------------- */
+function boot(){
+  document.documentElement.dataset.theme = Config.get().theme;
+
+  Avatar.resize();
+  Particles.resize();
+  Particles.setEnabled(Config.get().particles);
+
+  window.addEventListener('resize', () => { Avatar.resize(); Particles.resize(); });
+
+  applyTheme(Config.get().theme);
+  syncSwitches();
+  refreshSystem();
+
+  Log.sys(`Mark LV ready. Provider: ${Config.get().provider}. ${Config.get().apiKey ? '' : 'Add a free key in Settings (⌘,).'}`);
+  Log.assistant(`Hi, I'm ${Config.get().name}. Try "what time is it?", "search free LLM APIs", or press ⌘K for commands.`);
+
+  // greet toast
+  setTimeout(() => Toast.info('Mark LV online', 'Press ⌘K for the command palette · ⌘, for settings'), 400);
+
+  requestAnimationFrame(loop);
+}
+boot();
+</script>
+</body>
+</html>
